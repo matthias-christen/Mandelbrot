@@ -1,0 +1,79 @@
+
+/* Class = "NSWindow"; title = "Ghostlab Demo"; ObjectID = "1"; */
+"1.title" = "Ghostlab Demo";
+
+/* Class = "NSTextFieldCell"; title = "Please enter your license information below:"; ObjectID = "32"; */
+"32.title" = "Bitte gib Deine Lizenzinformation ein:";
+
+/* Class = "NSButtonCell"; title = "Continue Demo"; ObjectID = "96"; */
+"96.title" = "Demo fortsetzen";
+
+/* Class = "NSTextFieldCell"; title = "Thank you for trying Ghostlab."; ObjectID = "128"; */
+"128.title" = "Danke, dass Du Ghostlab ausprobierst.";
+
+/* Class = "NSTextFieldCell"; title = "You are using Ghostlab in demo mode.\nThe software will stop functioning when the end of the trial period is reached."; ObjectID = "140"; */
+"140.title" = "Du benutzt Ghostlab im Demomodus. Die Software\nwird nach Ablauf des Demozeitraums nicht mehr funktionieren.";
+
+/* Class = "NSTextFieldCell"; title = "Label"; ObjectID = "153"; */
+"153.title" = "Label";
+
+/* Class = "NSWindow"; title = "Enter License Key"; ObjectID = "160"; */
+"160.title" = "Lizenzschüssel eingeben";
+
+/* Class = "NSButtonCell"; title = "Enter License Key"; ObjectID = "168"; */
+"168.title" = "Lizenz eingeben";
+
+/* Class = "NSButtonCell"; title = "Purchase License"; ObjectID = "177"; */
+"177.title" = "Lizenz kaufen";
+
+/* Class = "NSButtonCell"; title = "Activate"; ObjectID = "214"; */
+"214.title" = "Aktivieren";
+
+/* Class = "NSButtonCell"; title = "Cancel"; ObjectID = "218"; */
+"218.title" = "Abbrechen";
+
+/* Class = "NSTextFieldCell"; title = "Remaining Time"; ObjectID = "278"; */
+"278.title" = "Verbleibende Zeit";
+
+/* Class = "NSTextFieldCell"; title = "Only the days of actual usage are counted."; ObjectID = "296"; */
+"296.title" = "Nur Tage, an denen Du Ghostlab startest, werden gezählt";
+
+/* Class = "NSTextFieldCell"; title = "Full Name:"; ObjectID = "342"; */
+"342.title" = "Full Name:";
+
+/* Class = "NSTextFieldCell"; title = "Organization:"; ObjectID = "349"; */
+"349.title" = "Organization:";
+
+/* Class = "NSTextFieldCell"; title = "License key:"; ObjectID = "354"; */
+"354.title" = "License key:";
+
+/* Class = "NSButtonCell"; title = "Paste"; ObjectID = "581"; */
+"581.title" = "Einfügen";
+
+/* Class = "NSButtonCell"; title = "Copy"; ObjectID = "589"; */
+"589.title" = "Kopieren";
+
+/* Class = "NSButtonCell"; title = "Cut"; ObjectID = "598"; */
+"598.title" = "Ausschneiden";
+
+/* Class = "NSButtonCell"; title = "SelectAll"; ObjectID = "611"; */
+"611.title" = "Alle Auswählen";
+
+/* Class = "NSWindow"; title = "Ghostlan 1 License Detected"; ObjectID = "657"; */
+"657.title" = "Ghostlan 1 Lizenz entdeckt";
+
+/* Class = "NSButtonCell"; title = "Take me to the upgrade page"; ObjectID = "664"; */
+"664.title" = "Zur Upgrade-Seite gehen";
+
+/* Class = "NSButtonCell"; title = "Back"; ObjectID = "665"; */
+"665.title" = "Zurück";
+
+/* Class = "NSTextFieldCell"; title = "You have entered a Ghostlab 1 license key.
+Ghostlab 2 requires a new license key.
+As a Ghostlab 1 customer, you can obtain a discounted upgrade. "; ObjectID = "669"; */
+"669.title" = "Du hast einen Ghostlab 1 Lizenzschlüssel eingegeben.
+Ghostlab 2 benötigt einen neuen Schlüssel.
+Als Ghostlab 1 Kunde hast Du Anrecht auf ein reduziertes Upgrade";
+
+/* Class = "NSTextFieldCell"; title = "You need to upgrade your license..."; ObjectID = "671"; */
+"671.title" = "Du musst Deine Lizenz upgraden...";

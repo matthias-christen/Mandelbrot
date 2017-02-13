@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="lib/jquery-3.1.1.min.js"></script>
+		<script src="compiler/Parser.js"></script>
+		<script src="compiler/Complex.js"></script>
+		<script src="compiler/Generator.js"></script>
+		<script src="compiler/ExpressionOptimizer.js"></script>
+		<script src="compiler/CodeGenerator_AVX2.js"></script>
+		<script src="compiler/MandelbrotCodeGenerator_AVX2.js"></script>
+		<script src="compiler/CodeGenerator_Arithmetic_AVX2.js"></script>
+		<script src="compiler/CodeGenerator_RealFunctions_AVX2.js"></script>
+		<script src="compiler/CodeGenerator_Functions_AVX2.js"></script>
+		<script src="compiler/Graph.js"></script>
+		<script src="compiler/GraphColoringGreedy.js"></script>
+		<script src="compiler/LiveAnalysis.js"></script>
+		<script src="compiler/RegisterAllocator.js"></script>
+		<script src="compiler/Assembler_AVX2.js"></script>
+		<script src="compiler/MandelbrotAssembler_AVX2.js"></script>
+
+		<script>
+			var architecture = {
+				registersCount: 16
+			};
+
+			var $canvas = undefined;
+			var ctx = undefined;
+
+			function clamp(x, min, max)
+			{
+				if (x < min)
+					return min;
+				if (x > max)
+					return max;
+				return x;
+			}
+
+			function compile(formula, cb)
+			{
+				var expr = Parser.parse(formula);
+				var exprOpt = new ExpressionOptimizer(expr);
+				var codeGen = new MandelbrotCodeGenerator(exprOpt.generate());
+				codeGen.generate();
+
+				console.log(codeGen.toString());
+
+				allocateRegisters(
+					codeGen.instructions,
+					architecture,
+					4 /* 4 registers for zRe, zIm, cRe, cIm */
+				);
+
+				var assembler = new MandelbrotAssembler(codeGen.instructions);
+				assembler.run();
+
+				console.log(assembler.code.map(x => ('0' + x.toString(16)).substr(-2)).join(' '));
+
+				app.compileCode(assembler.code, codeGen.constants, cb);
+			}
+
+			function compute()
+			{
+				app.executeCode(
+					-2.1, -1.4, 0.7, 1.4,
+					2.8 / 512, 2.8 / 512,
+					2,
+					500,
+					function(width, height, result)
+					{
+						console.log(width + ' x ' + height);
+
+						var imgData = ctx.createImageData(width, height);
+						var data = imgData.data;
+						var idx = 0;
+
+						for (var j = 0; j < height; j++)
+						{
+							for (var i = 0; i < width; i++)
+							{
+								var v = result.charCodeAt(2 * idx) + 128 * result.charCodeAt(2 * idx + 1);
+								var g = clamp((v - 256) * 8, 0, 255);
+								var k = idx * 4;
+
+								data[k] = g;
+								data[k + 1] = g;
+								data[k + 2] = clamp(v * 10, 0, 255);
+								data[k + 3] = 255;
+
+								++idx;
+							}
+						}
+						
+						ctx.putImageData(imgData, 0, 0);
+					}
+				);
+			}
+
+			function test()
+			{
+				var cg = new CodeGenerator();
+				var reg = cg.createRegister();
+				cg.instructions.push({
+					code: 'vmovapd',
+					ops: [ reg, cg.getConstants(1.0, 10.0, 100.0, 1000.0) ]
+				});
+				var ret = cg._real_sincos(reg);
+				cg.instructions.push({
+					code: 'vmovapd',
+					ops: [ { type: 'register', id: 0 }, ret.sin ]
+				});
+				cg.instructions.push({
+					code: 'vmovapd',
+					ops: [ { type: 'register', id: 1 }, ret.cos ]
+				});
+
+				allocateRegisters(
+					cg.instructions,
+					architecture,
+					4 /* 4 registers for zRe, zIm, cRe, cIm */
+				);
+
+				console.log(cg.toString());
+				var asm = new Assembler(cg.instructions);
+				asm.run();
+				asm.code.push(0xc3); // ret
+
+				console.log(asm.code.map(x => ('0' + x.toString(16)).substr(-2)).join(' '));
+
+				app.compileCode(asm.code, cg.constants, function()
+				{
+					app.executeCode(0, 1, 0, 1, 1, 1, 0, 0);
+				});
+			}
+
+			$(document).ready(function()
+			{
+				$canvas = $('#canvas');
+				ctx = $canvas[0].getContext("2d");
+
+				test();
+
+				$formula = $('.input-formula');
+				$formula.change(function()
+				{
+					try
+					{
+						compile($formula.val(), compute);
+					}
+					catch (e)
+					{
+						// error message
+					}
+				});
+
+				$compute = $('.btn-compute');
+				$compute.click(function()
+				{
+					compute();
+				});
+			});
+		</script>
+
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<input type="text" class="input-formula">
+		<input type="text" class="input-radius">
+		<input type="text" class="input-maxiter">
+		<button class="btn-compute">Compute</button>
+		<div>
+			<canvas id="canvas" width="512" height="512"></canvas>
+		</div>
+	</body>
+</html>

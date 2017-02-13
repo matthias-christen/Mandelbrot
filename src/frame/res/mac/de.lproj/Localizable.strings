@@ -1,0 +1,97 @@
+/* 
+  Localizable.strings
+  GhostlabMac
+
+  Created by Matthias Christen on 18.03.14.
+  Copyright (c) 2014 Vanamco AG. All rights reserved.
+*/
+
+"About Ghostlab" = "Über Ghostlab";
+"Check for Updates" = "Updates suchen";
+"Preferences …" = "Einstellungen …";
+"Reset Preferences" = "Einstellungen zurücksetzen";
+"Reset Site Defaults" = "Seiten-Standardeinstellungen zurücksetzen";
+"Hide Ghostlab" = "Ghostlab ausblenden";
+"Hide Others" = "Andere ausblenden";
+"Show All" = "Alle anzeigen";
+"Quit Ghostlab" = "Ghostlab beenden";
+
+"Edit" = "Bearbeiten";
+"Undo" = "Rückgängig";
+"Redo" = "Wiederherstellen";
+"Cut" = "Ausschneiden";
+"Copy" = "Kopieren";
+"Paste" = "Einsetzen";
+"Paste and Match Style" = "Einsetzen und Stil anpassen";
+"Delete" = "Löschen";
+"Select All" = "Alles auswählen";
+"Transformations" = "Transformationen";
+"Make Upper Case" = "Großbuchstaben";
+"Make Lower Case" = "Kleinbuchstaben";
+"Capitalize" = "Großschreiben";
+"Speech" = "Sprachausgabe";
+"Start Speaking" = "Sprachausgabe beginnen";
+"Stop Speaking" = "Sprachausgabe stoppen";
+"Start Dictation" = "Diktat starten";
+"Special Characters" = "Sonderzeichen";
+
+"Sites" = "Seiten";
+"Add Site …" = "Seite hinzufügen …";
+"Remove Sites …" = "Seiten entfernen …";
+"Search …" = "Suchen …";
+
+"Server" = "Server";
+"Launch in Default Browser" = "Im Standard-Browser öffnen";
+"Stop Server" = "Server stoppen";
+"Refresh" = "Neu laden";
+"Sync Modes" = "Synchronisations-Modi";
+"Default" = "Standard";
+"Presentation Mode" = "Präsentationsmodus";
+"Selective Sync" = "Selektive Synchronisation";
+
+"Show Server URL QR Code" = "Server-URL QR-Code anzeigen";
+
+"Workspace" = "Workspace";
+"Open Workspace" = "Workspace öffnen";
+"Set as Workspace" = "Workspace speichern";
+"Reset Workspace to Default" = "Standard-Workspace wiederherstellen";
+"Close Workspace Windows" = "Workspace-Fenster schließen";
+"Workspace Info" = "Workspace-Info";
+
+"View" = "Darstellung";
+"Enter Full Screen" = "Vollbild ein";
+"Toggle Tray" = "Tray umschalten";
+
+"Window" = "Fenster";
+"Minimize" = "Im Dock ablegen";
+"Zoom" = "Zoomen";
+"Bring All to Front" = "Alle nach vorne bringen";
+
+"Help" = "Hilfe";
+"Search" = "Suchen";
+"Ghostlab Help" = "Ghostlab Hilfe";
+"Credits" = "Credits";
+"EULA" = "Lizenzvereinbarung";
+"Purchase License" = "Lizenz kaufen";
+"Enter License Key" = "Lizenzschlüssel eingeben";
+
+"Start Demo" = "Demo starten";
+"Continue Demo" = "Demo fortsetzen";
+"Close" = "Schliessen";
+" days left." = " Tage übrig.";
+"1 day left." = "1 Tag übrig.";
+"No days left. Please purchase a license." = "Demo abgelaufen. Bitte kaufe eine Lizenz.";
+"This license key is not valid. Please try again." = "Diese Lizenz ist nicht gültig. Bitte versuche es erneut.";
+"Activation" = "Aktivierung";
+"Thank you for activating " = "Danke für die Aktivierung von ";
+"Unfortunately, an error occurred during the activation of" = "Es gab einen Fehler bei der Aktivierung von ";
+"Unfortunately, an error occurred during deactivating" = "Es gab einen Fehler bei der Deaktivierung von ";
+"Deactivation" = "Deaktivierung";
+"You have successfully deactivated " = "Erfolgreiche Deaktivierung von ";
+"The application will quit now." = "Die Anwendung wird nun beendet.";
+"Unfortunately, an error while retrieving a demo license from the licensing server:\n" = "Bei der Verbindungsaufnahme mit der Lizenzserver ist leider ein Fehler aufgetreten:\n";
+"Failed to contact the licensing server.\n\nPlease try again later." = "Verbindungsaufbau fehlgeschlagen.\n\nBitte versuch es später nochmals.";
+"Failed to parse response from the licensing server.\n\nPlease try again later." = "Die Antwort des Lizenzservers konnte nicht geparsed werden.\n\Bitte versuch es später nochmals.";
+"Unexpected response from the licensing server:\n" = "Unerwartete Antwort vom Lizenzserver:\n";
+"\n\nPlease try again later." = "\n\nBitte versuch es später nochmals.";
+"Licensing Error" = "Lizenzierungsfehler";

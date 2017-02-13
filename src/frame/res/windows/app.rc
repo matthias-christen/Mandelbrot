@@ -1,0 +1,607 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Neutral resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEU)
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 256
+//
+
+3001 BINARY "..\\..\\..\\tmp\\AppProd\\index.html"
+3002 BINARY "..\\..\\..\\tmp\\AppProd\\app\\default-data\\default-data.json"
+3003 BINARY "..\\..\\..\\tmp\\AppProd\\app\\i18n\\load-strings.js"
+3004 BINARY "..\\..\\..\\tmp\\AppProd\\app\\i18n\\strings_de.js"
+3005 BINARY "..\\..\\..\\tmp\\AppProd\\app\\i18n\\strings_en.js"
+3006 BINARY "..\\..\\..\\tmp\\AppProd\\app\\lib\\cm\\codemirror.css"
+3007 BINARY "..\\..\\..\\tmp\\AppProd\\app\\lib\\cm\\codemirror.js"
+3008 BINARY "..\\..\\..\\tmp\\AppProd\\app\\lib\\cm\\javascript.js"
+3009 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\icons.svg"
+3010 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\ghostie-64.png"
+3011 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\ghostlab.png"
+3012 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\ghostlab@2x.png"
+3013 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\ghost_anim.gif"
+3014 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\ghost_anim@2x.gif"
+3015 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\loader.gif"
+3016 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\loader@2x.gif"
+3017 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\settings_tabs_left.svg"
+3018 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\settings_tabs_right.svg"
+3019 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\browsericons\\chrome.png"
+3020 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\browsericons\\edge.png"
+3021 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\browsericons\\firefox.png"
+3022 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\browsericons\\ie.png"
+3023 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\browsericons\\konqueror.png"
+3024 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\browsericons\\opera.png"
+3025 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\browsericons\\playstation.png"
+3026 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\browsericons\\safari.png"
+3027 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\elements\\browsericons\\xbox.png"
+3028 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-code-pro\\sourcecodepro-bold-webfont.woff"
+3029 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-code-pro\\sourcecodepro-regular-webfont.woff"
+3030 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-Black.otf.woff"
+3031 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-BlackIt.otf.woff"
+3032 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-Bold.otf.woff"
+3033 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-BoldIt.otf.woff"
+3034 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-ExtraLight.otf.woff"
+3035 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-ExtraLightIt.otf.woff"
+3036 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-It.otf.woff"
+3037 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-Light.otf.woff"
+3038 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-LightIt.otf.woff"
+3039 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-Regular.otf.woff"
+3040 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-Semibold.otf.woff"
+3041 BINARY "..\\..\\..\\tmp\\AppProd\\assets\\fonts\\source-sans-pro\\SourceSansPro-SemiboldIt.otf.woff"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_CEFCLIENT           ICON                    "win\\ghostlab.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDC_CEFCLIENT ACCELERATORS
+BEGIN
+    VK_OEM_COMMA,   ID_FILE_PREFERENCES,    VIRTKEY, ALT, NOINVERT
+    VK_F1,          ID_HELP_HELP,           VIRTKEY, NOINVERT
+    VK_RETURN,      ID_SERVER_LAUNCHINDEFAULTBROWSER, VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_SERVER_REFRESH,      VIRTKEY, NOINVERT
+    "Q",            ID_SERVER_SHOWSERVERURLQRCODE, VIRTKEY, CONTROL, NOINVERT
+    "K",            ID_SERVER_STOPSERVER,   VIRTKEY, CONTROL, NOINVERT
+    "N",            ID_SITES_ADDSITE,       VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        ID_SITES_REMOVESITES,   VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_SITES_SEARCH,        VIRTKEY, CONTROL, NOINVERT
+    "1",            ID_SYNCMODES_DEFAULT,   VIRTKEY, CONTROL, NOINVERT
+    "2",            ID_SYNCMODES_PRESENTATION, VIRTKEY, CONTROL, NOINVERT
+    "3",            ID_SYNCMODES_SELECTIVESYNC, VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_PERIOD,  ID_VIEW_TOGGLETRAY,     VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          ID_WORKSPACE_CLOSEWORKSPACEWINDOWS, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "O",            ID_WORKSPACE_OPENWORKSPACE, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "R",            ID_WORKSPACE_RESETWORKSPACETODEFAULT, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "S",            ID_WORKSPACE_SETASWORKSPACE, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "I",            ID_WORKSPACE_WORKSPACEINFO, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "/",            IDM_ABOUT,              ASCII,  ALT, NOINVERT
+    "?",            IDM_ABOUT,              ASCII,  ALT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,1,3,0
+ PRODUCTVERSION 2,1,3,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x0L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080704b0"
+        BEGIN
+            VALUE "CompanyName", "Vanamco"
+            VALUE "FileDescription", "Ghostlab: Synchronized testing for web and mobile."
+            VALUE "FileVersion", "2.1.3.0"
+            VALUE "InternalName", "Ghostlab"
+            VALUE "LegalCopyright", "Copyright (C) 2013-2015"
+            VALUE "OriginalFilename", "ghostlab.exe"
+            VALUE "ProductName", "Ghostlab"
+            VALUE "ProductVersion", "2.1.3.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x807, 1200
+    END
+END
+
+#endif    // Neutral resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+LANGUAGE LANG_GERMAN, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_LICENSEKEY DIALOGEX 0, 0, 309, 161
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Enter License Key"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Bitte gibt Deine Lizenzinformationen ein:",IDC_STATIC,7,7,295,117,BS_CENTER
+    RTEXT           "Full Name:",IDC_STATIC,37,33,34,8
+    EDITTEXT        IDC_EDIT_FULLNAME,87,30,195,14,ES_AUTOHSCROLL
+    RTEXT           "Organization:",IDC_STATIC,27,55,44,8
+    EDITTEXT        IDC_EDIT_ORGANIZATION,87,52,195,14,ES_AUTOHSCROLL
+    RTEXT           "License Key:",IDC_STATIC,30,77,41,8
+    EDITTEXT        IDC_EDIT_LICENSEKEY,87,74,195,33,ES_MULTILINE | ES_AUTOVSCROLL
+    DEFPUSHBUTTON   "Aktivieren",IDOK,198,140,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,252,140,50,14
+END
+
+IDD_UPGRADEHINT DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Zur Upgrade-Seite gehen",IDOK,171,155,131,14
+    PUSHBUTTON      "Zurück",IDCANCEL,115,155,50,14
+    LTEXT           "Du musst Deine Lizenz upgraden...",IDC_DEMOTITLE,105,19,185,8
+    LTEXT           "Du hast einen Ghostlab 1 Lizenzschlüssel eingegeben. Ghostlab 2 benötigt einen neuen Schlüssel. Als Ghostlab 1 Kunde hast Du Anrecht auf ein reduziertes Upgrade.",IDC_STATIC,105,40,185,30
+END
+
+IDD_DEMO DIALOGEX 0, 0, 309, 198
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ghostlab Demo"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Demo fortsetzen",IDOK,18,172,80,14
+    PUSHBUTTON      "Lizenz kaufen",IDC_PURCHASELICENSE,114,172,80,14
+    PUSHBUTTON      "Lizenz eingeben",IDC_ENTERLICENSEKEY,210,172,80,14
+    LTEXT           "Danke, dass Du Ghostlab ausprobierst.",IDC_DEMOTITLE,105,19,185,8
+    LTEXT           "Du benutzt Ghostlab im Demo-Modus.\nDie Software wird nicht mehr funktionieren, wenn das Ende der Demo-Phase erreicht ist.",IDC_STATIC,105,40,185,30
+    GROUPBOX        "Verbleibende Zeit",IDC_STATIC,18,92,272,59,BS_CENTER
+    LTEXT           "Nur Tage, an denen Du Ghostlab startest, werden gezählt.",IDC_STATIC,33,107,210,8
+    LTEXT           "Static",IDC_TEXT_DAYS,33,132,243,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDC_CEFCLIENT MENU
+BEGIN
+    POPUP "&Datei"
+    BEGIN
+        MENUITEM "&Einstellungen\tAlt+,",       ID_FILE_PREFERENCES
+        MENUITEM "Einstellungen &zurücksetzen", ID_FILE_RESETPREFERENCES
+        MENUITEM "&Seiten-Standardeinstellungen zurücksetzen", ID_FILE_RESETSITEDEFAULTS
+        MENUITEM SEPARATOR
+        MENUITEM "&Updates suchen",             ID_FILE_CHECKFORUPDATES
+        MENUITEM SEPARATOR
+        MENUITEM "&Beenden\tAlt+F4",            IDM_EXIT
+    END
+    POPUP "&Ansicht"
+    BEGIN
+        MENUITEM "&Tray umschalten\tStrg+.",    ID_VIEW_TOGGLETRAY
+    END
+    POPUP "S&eiten"
+    BEGIN
+        MENUITEM "Seite &hinzufügen\tStrg+N",   ID_SITES_ADDSITE
+        MENUITEM "Seiten &entfernen\tStrg+Back", ID_SITES_REMOVESITES
+        MENUITEM SEPARATOR
+        MENUITEM "&Suchen\tStrg+F",             ID_SITES_SEARCH
+    END
+    POPUP "&Server"
+    BEGIN
+        MENUITEM "Im Standard-&Browser starten\tStrg+Eingabe", ID_SERVER_LAUNCHINDEFAULTBROWSER
+        MENUITEM "Server &stoppen\tStrg+K",     ID_SERVER_STOPSERVER
+        MENUITEM "&Neu laden\tF5",              ID_SERVER_REFRESH
+        MENUITEM SEPARATOR
+        POPUP "Synchronisations-&Modi"
+        BEGIN
+            MENUITEM "Standar&d\tStrg+1",           ID_SYNCMODES_DEFAULT
+            MENUITEM "&Präsentationsmodus\tStrg+2", ID_SYNCMODES_PRESENTATION
+            MENUITEM "&Selektive Synchronisation\tStrg+3", ID_SYNCMODES_SELECTIVESYNC
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Server-URL &QR-Code anzeigen\tStrg+Q", ID_SERVER_SHOWSERVERURLQRCODE
+    END
+    POPUP "&Workspace"
+    BEGIN
+        MENUITEM "W&orkspace öffnen\tStrg+Umschalt+O", ID_WORKSPACE_OPENWORKSPACE
+        MENUITEM "Workspace &speichern\tStrg+Umschalt+S", ID_WORKSPACE_SETASWORKSPACE
+        MENUITEM "Standard-Workspace &wiederherstellen\tStrg+Umschalt+R", ID_WORKSPACE_RESETWORKSPACETODEFAULT
+        MENUITEM SEPARATOR
+        MENUITEM "Workspace-Fenster s&chließen\tStrg+Umschalt+F4", ID_WORKSPACE_CLOSEWORKSPACEWINDOWS
+        MENUITEM SEPARATOR
+        MENUITEM "Workspace-&Info\tStrg+Umschalt+I", ID_WORKSPACE_WORKSPACEINFO
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Loopback für Internet Explorer aktivieren", ID_TOOLS_ENABLELOOPBACKFORINTERNETEXPLORER
+        MENUITEM "Loopback-Ausnahmen &zurücksetzen", ID_TOOLS_RESETLOOPBACKEXEMPTIONS
+    END
+    POPUP "&Hilfe"
+    BEGIN
+        MENUITEM "Üb&er Ghostlab...",           IDM_ABOUT
+        MENUITEM "&Hilfe\tF1",                  ID_HELP_HELP
+        MENUITEM SEPARATOR
+        MENUITEM "Lizenz &kaufen",              ID_HELP_PURCHASELICENSE
+        MENUITEM "Lizenzschlüssel &eingeben",   ID_HELP_ENTERLICENSEKEY
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE           "Ghostlab"
+    IDS_STRING104           "Demo starten"
+    IDS_STRING105           "Demo fortsetzen"
+    IDS_STRING106           "Schliessen"
+    IDS_STRING107           " Tage übrig."
+    IDS_STRING108           "1 Tag übrig."
+    IDC_CEFCLIENT           "GHOSTLAB"
+    IDS_STRING110           "Demo abgelaufen. Bitte kaufe eine Lizenz."
+    IDS_STRING111           "Dieser Lizenzschlüssel ist ungültig. Bitte versuche es nochmals."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING112           "Danke fürs Aktivieren von "
+END
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_LICENSEKEY DIALOGEX 0, 0, 309, 161
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Enter License Key"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Please enter your license information below.",IDC_STATIC,7,7,295,117,BS_CENTER
+    RTEXT           "Full Name:",IDC_STATIC,37,33,34,8
+    EDITTEXT        IDC_EDIT_FULLNAME,87,30,195,14,ES_AUTOHSCROLL
+    RTEXT           "Organization:",IDC_STATIC,27,55,44,8
+    EDITTEXT        IDC_EDIT_ORGANIZATION,87,52,195,14,ES_AUTOHSCROLL
+    RTEXT           "License Key:",IDC_STATIC,30,77,41,8
+    EDITTEXT        IDC_EDIT_LICENSEKEY,87,74,195,33,ES_MULTILINE | ES_AUTOVSCROLL
+    DEFPUSHBUTTON   "Activate",IDOK,198,140,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,252,140,50,14
+END
+
+IDD_DEMO DIALOGEX 0, 0, 309, 198
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ghostlab Demo"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Continue Demo",IDOK,18,172,80,14
+    PUSHBUTTON      "Purchase License",IDC_PURCHASELICENSE,114,172,80,14
+    PUSHBUTTON      "Enter License Key",IDC_ENTERLICENSEKEY,210,172,80,14
+    LTEXT           "Thank you for trying Ghostlab.",IDC_DEMOTITLE,105,19,185,8
+    LTEXT           "You are using Ghostlab in demo mode.\nThe software will stop functioning when the end of the trial period is reached.",IDC_STATIC,105,40,185,30
+    GROUPBOX        "Remaining Time",IDC_STATIC,18,92,272,59,BS_CENTER
+    LTEXT           "Only the days of actual usage are counted.",IDC_STATIC,33,107,142,8
+    LTEXT           "Static",IDC_TEXT_DAYS,33,132,243,8
+END
+
+IDD_UPGRADEHINT DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Take me to the upgrade page",IDOK,171,155,131,14
+    PUSHBUTTON      "Back",IDCANCEL,115,155,50,14
+    LTEXT           "You need to upgrade your license...",IDC_DEMOTITLE,105,19,185,8
+    LTEXT           "You have entered a Ghostlab1 license key. Ghostlab 2 requires a new license key. As a Ghostlab 1 customer, you can obtain a discounted upgrade.",IDC_STATIC,105,40,185,30
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDC_CEFCLIENT MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Preferences\tAlt+,",         ID_FILE_PREFERENCES
+        MENUITEM "&Reset Preferences",          ID_FILE_RESETPREFERENCES
+        MENUITEM "Reset Site &Defaults",        ID_FILE_RESETSITEDEFAULTS
+        MENUITEM SEPARATOR
+        MENUITEM "Check for &Updates",          ID_FILE_CHECKFORUPDATES
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               IDM_EXIT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Toggle Tray\tCtrl+.",        ID_VIEW_TOGGLETRAY
+    END
+    POPUP "S&ites"
+    BEGIN
+        MENUITEM "&Add Site\tCtrl+N",           ID_SITES_ADDSITE
+        MENUITEM "&Remove Sites\tCtrl+Back",    ID_SITES_REMOVESITES
+        MENUITEM SEPARATOR
+        MENUITEM "&Search\tCtrl+F",             ID_SITES_SEARCH
+    END
+    POPUP "&Server"
+    BEGIN
+        MENUITEM "&Launch in Default Browser\tCtrl+Enter", ID_SERVER_LAUNCHINDEFAULTBROWSER
+        MENUITEM "&Stop Server\tCtrl+K",        ID_SERVER_STOPSERVER
+        MENUITEM "&Refresh\tF5",                ID_SERVER_REFRESH
+        MENUITEM SEPARATOR
+        POPUP "Sync &Modes"
+        BEGIN
+            MENUITEM "&Default\tCtrl+1",            ID_SYNCMODES_DEFAULT
+            MENUITEM "&Presentation Mode\tCtrl+2",  ID_SYNCMODES_PRESENTATION
+            MENUITEM "&Selective Sync\tCtrl+3",     ID_SYNCMODES_SELECTIVESYNC
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Show Server URL &QR Code\tCtrl+Q", ID_SERVER_SHOWSERVERURLQRCODE
+    END
+    POPUP "&Workspace"
+    BEGIN
+        MENUITEM "&Open Workspace\tCtrl+Shift+O", ID_WORKSPACE_OPENWORKSPACE
+        MENUITEM "&Set as Workspace\tCtrl+Shift+S", ID_WORKSPACE_SETASWORKSPACE
+        MENUITEM "&Reset Workspace to Default\tCtrl+Shift+R", ID_WORKSPACE_RESETWORKSPACETODEFAULT
+        MENUITEM SEPARATOR
+        MENUITEM "&Close Workspace Windows\tCtrl+Shift+F4", ID_WORKSPACE_CLOSEWORKSPACEWINDOWS
+        MENUITEM SEPARATOR
+        MENUITEM "Workspace &Info\tCtrl+Shift+I", ID_WORKSPACE_WORKSPACEINFO
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Enable loopback for Internet Explorer", ID_TOOLS_ENABLELOOPBACKFORINTERNETEXPLORER
+        MENUITEM "&Reset loopback exemptions",  ID_TOOLS_RESETLOOPBACKEXEMPTIONS
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About ...",                  IDM_ABOUT
+        MENUITEM "&Help\tF1",                   ID_HELP_HELP
+        MENUITEM SEPARATOR
+        MENUITEM "Purchase &License",           ID_HELP_PURCHASELICENSE
+        MENUITEM "Enter License Key",           ID_HELP_ENTERLICENSEKEY
+    END
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_LICENSEKEY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 154
+    END
+
+    IDD_DEMO, DIALOG
+    BEGIN
+        LEFTMARGIN, 18
+        RIGHTMARGIN, 290
+        TOPMARGIN, 10
+        BOTTOMMARGIN, 186
+    END
+
+    IDD_UPGRADEHINT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 169
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE           "Ghostlab"
+    IDS_STRING104           "Start Demo"
+    IDS_STRING105           "Continue Demo"
+    IDS_STRING106           "Close"
+    IDS_STRING107           " days left."
+    IDS_STRING108           "1 day left."
+    IDC_CEFCLIENT           "GHOSTLAB"
+    IDS_STRING110           "No days left. Please purchase a license."
+    IDS_STRING111           "This license key is not valid. Please try again."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING112           "Thank you for activating "
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Switzerland) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DES)
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN_SWISS
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDC_CEFCLIENT MENU
+BEGIN
+    POPUP "&Datei"
+    BEGIN
+        MENUITEM "&Einstellungen\tAlt+,",       ID_FILE_PREFERENCES
+        MENUITEM "Einstellungen &zurücksetzen", ID_FILE_RESETPREFERENCES
+        MENUITEM "&Seiten-Standardeinstellungen zurücksetzen", ID_FILE_RESETSITEDEFAULTS
+        MENUITEM SEPARATOR
+        MENUITEM "&Updates suchen",             ID_FILE_CHECKFORUPDATES
+        MENUITEM SEPARATOR
+        MENUITEM "&Beenden\tAlt+F4",            IDM_EXIT
+    END
+    POPUP "&Ansicht"
+    BEGIN
+        MENUITEM "&Tray umschalten\tCtrl+.",    ID_VIEW_TOGGLETRAY
+    END
+    POPUP "S&eiten"
+    BEGIN
+        MENUITEM "Seite &hinzufügen\tCtrl+N",   ID_SITES_ADDSITE
+        MENUITEM "Seiten &entfernen\tCtrl+Back", ID_SITES_REMOVESITES
+        MENUITEM SEPARATOR
+        MENUITEM "&Suchen\tCtrl+F",             ID_SITES_SEARCH
+    END
+    POPUP "&Server"
+    BEGIN
+        MENUITEM "Im Standard-&Browser starten\tCtrl+Eingabe", ID_SERVER_LAUNCHINDEFAULTBROWSER
+        MENUITEM "Server &stoppen\tCtrl+K",     ID_SERVER_STOPSERVER
+        MENUITEM "&Neu laden\tF5",              ID_SERVER_REFRESH
+        MENUITEM SEPARATOR
+        POPUP "Synchronisations-&Modi"
+        BEGIN
+            MENUITEM "Standar&d\tCtrl+1",           ID_SYNCMODES_DEFAULT
+            MENUITEM "&Präsentationsmodus\tCtrl+2", ID_SYNCMODES_PRESENTATION
+            MENUITEM "&Selektive Synchronisation\tCtrl+3", ID_SYNCMODES_SELECTIVESYNC
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Server-URL &QR-Code anzeigen\tCtrl+Q", ID_SERVER_SHOWSERVERURLQRCODE
+    END
+    POPUP "&Workspace"
+    BEGIN
+        MENUITEM "W&orkspace öffnen\tCtrl+Shift+O", ID_WORKSPACE_OPENWORKSPACE
+        MENUITEM "Workspace &speichern\tCtrl+Shift+S", ID_WORKSPACE_SETASWORKSPACE
+        MENUITEM "Standard-Workspace &wiederherstellen\tCtrl+Shift+R", ID_WORKSPACE_RESETWORKSPACETODEFAULT
+        MENUITEM SEPARATOR
+        MENUITEM "Workspace-Fenster s&chliessen\tCtrl+Shift+F4", ID_WORKSPACE_CLOSEWORKSPACEWINDOWS
+        MENUITEM SEPARATOR
+        MENUITEM "Workspace-&Info\tCtrl+Shift+I", ID_WORKSPACE_WORKSPACEINFO
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Loopback für Internet Explorer aktivieren", ID_TOOLS_ENABLELOOPBACKFORINTERNETEXPLORER
+        MENUITEM "Loopback-Ausnahmen &zurücksetzen", ID_TOOLS_RESETLOOPBACKEXEMPTIONS
+    END
+    POPUP "&Hilfe"
+    BEGIN
+        MENUITEM "Üb&er Ghostlab...",           IDM_ABOUT
+        MENUITEM "&Hilfe\tF1",                  ID_HELP_HELP
+        MENUITEM SEPARATOR
+        MENUITEM "Lizenz &kaufen",              ID_HELP_PURCHASELICENSE
+        MENUITEM "Lizenzschlüssel &eingeben",   ID_HELP_ENTERLICENSEKEY
+    END
+END
+
+#endif    // German (Switzerland) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

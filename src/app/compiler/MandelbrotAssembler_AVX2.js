@@ -1,0 +1,84 @@
+function MandelbrotAssembler()
+{
+}
+
+MandelbrotAssembler.prototype = new Assembler();
+
+
+MandelbrotAssembler.prototype.run = function()
+{
+	// prologue
+	this.code.push(
+		0xc5, 0xfd, 0x28, 0x58, 0x20  // vmovapd ymm3,YMMWORD PTR [rax+0x20]
+	);
+
+	this.addLabel('NEXT_Y');
+	this.code.push(
+		                              // NEXT_Y:
+		0xc5, 0xfd, 0x28, 0x10,       // vmovapd ymm2,YMMWORD PTR [rax]
+		0x4d, 0x89, 0xd3              // mov     r11,r10
+	);
+
+	this.addLabel('NEXT_X');
+	this.code.push(
+		                              // NEXT_X:
+		0xc5, 0xfd, 0x57, 0xc0,       // vxorpd ymm0,ymm0,ymm0
+		0xc5, 0xf5, 0x57, 0xc9,       // vxorpd ymm1,ymm1,ymm1
+		0x4c, 0x89, 0xe9,             // mov    rcx,r13
+		0x48, 0x31, 0xd2,             // xor    rdx,rdx
+		0x4d, 0x31, 0xc9              // xor    r9,r9
+	);
+
+
+	// iteration loop
+	this.addLabel('NEXT_ITER');
+	Assembler_AVX2.prototype.run.call(this);
+
+
+	// epilogue
+	this.code.push(
+		0x48, 0x09, 0xd2,             // or     rdx,rdx
+		                              // jz EXIT
+		0x0f, 0x84, this.getLabelRef('EXIT'),
+
+		0x49, 0x89, 0xd0,             // mov    r8,rdx
+		0x48, 0xc1, 0xe2, 0x0f,       // shl    rdx,0xf
+		0x49, 0x09, 0xd0,             // or     r8,rdx
+		0x48, 0xc1, 0xe2, 0x0f,       // shl    rdx,0xf
+		0x49, 0x09, 0xd0,             // or     r8,rdx
+		0x48, 0xc1, 0xe2, 0x0f,       // shl    rdx,0xf
+		0x49, 0x09, 0xd0,             // or     r8,rdx
+		                              // movabs rdx,0x1000100010001
+		0x48, 0xba, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
+		0x49, 0x21, 0xd0,             // and    r8,rdx
+		0x4d, 0x01, 0xc1,             // add    r9,r8
+		0x48, 0xff, 0xc9,             // dec    rcx
+		                              // jnz NEXT_ITER
+		0x0f, 0x85, this.getLabelRef('NEXT_ITER')
+	);
+
+	this.addLabel('EXIT');
+	this.code.push(
+		0x4d, 0x89, 0xce,             // mov    r14,r9
+		0x49, 0xd1, 0xe6,             // shl    r14,1
+		                              // movabs rdx,0x7f007f007f007f
+		0x48, 0xba, 0x7f, 0x00, 0x7f, 0x00, 0x7f, 0x00, 0x7f, 0x00,
+		0x49, 0x21, 0xd1,             // and    r9,rdx
+		0x48, 0xc1, 0xe2, 0x08,       // shl    rdx,0x08
+		0x49, 0x21, 0xd6,             // and    r14,rdx
+		0x4d, 0x09, 0xf1,             // or     r9,r14
+		0x4c, 0x89, 0x0b,             // mov    QWORD PTR [rbx],r9
+		0x48, 0x83, 0xc3, 0x08,       // add    rbx,0x08
+		0xc5, 0xed, 0x58, 0x50, 0x40, // vaddpd ymm2,ymm2,YMMWORD PTR [rax+0x40]
+		0x49, 0xff, 0xcb,             // dec    r11
+		                              // jnz NEXT_X
+		0x0f, 0x85, this.getLabelRef('NEXT_X'),
+		0xc5, 0xe5, 0x58, 0x58, 0x60, // vaddpd ymm3,ymm3,YMMWORD PTR [rax+0x60]
+		0x49, 0xff, 0xcc,             // dec    r12
+		                              // jnz NEXT_Y
+		0x0f, 0x85, this.getLabelRef('NEXT_Y'),
+		0xc3                          // ret
+	);
+
+	this.resolveLabels();
+};

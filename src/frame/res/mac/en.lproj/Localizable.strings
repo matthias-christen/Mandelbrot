@@ -1,0 +1,96 @@
+/* 
+  Localizable.strings
+  GhostlabMac
+
+  Created by Matthias Christen on 18.03.14.
+  Copyright (c) 2014 Vanamco AG. All rights reserved.
+*/
+
+"About Ghostlab" = "About Ghostlab";
+"Check for Updates" = "Check for Updates";
+"Preferences" = "Preferences";
+"Reset Preferences" = "Reset Preferences";
+"Reset Site Defaults" = "Reset Site Defaults";
+"Hide Ghostlab" = "Hide Ghostlab";
+"Hide Others" = "Hide Others";
+"Show All" = "Show All";
+"Quit Ghostlab" = "Quit Ghostlab";
+
+"Edit" = "Edit";
+"Undo" = "Undo";
+"Redo" = "Redo";
+"Cut" = "Cut";
+"Copy" = "Copy";
+"Paste" = "Paste";
+"Paste and Match Style" = "Paste and Match Style";
+"Delete" = "Delete";
+"Select All" = "Select All";
+"Transformations" = "Transformations";
+"Make Upper Case" = "Make Upper Case";
+"Make Lower Case" = "Make Lower Case";
+"Capitalize" = "Capitalize";
+"Speech" = "Speech";
+"Start Speaking" = "Start Speaking";
+"Stop Speaking" = "Stop Speaking";
+"Start Dictation" = "Start Dictation";
+"Special Characters" = "Special Characters";
+
+"Sites" = "Sites";
+"Add Site" = "Add Site";
+"Remove Sites" = "Remove Sites";
+"Search" = "Search";
+
+"Server" = "Server";
+"Launch in Default Browser" = "Launch in Default Browser";
+"Stop Server" = "Stop Server";
+"Refresh" = "Refresh";
+"Sync Modes" = "Sync Modes";
+"Default" = "Default";
+"Presentation Mode" = "Presentation Mode";
+"Selective Sync" = "Selective Sync";
+"Show Server URL QR Code" = "Show Server URL QR Code";
+
+"Workspace" = "Workspace";
+"Open Workspace" = "Open Workspace";
+"Set as Workspace" = "Set as Workspace";
+"Reset Workspace to Default" = "Reset Workspace to Default";
+"Close Workspace Windows" = "Close Workspace Windows";
+"Workspace Info" = "Workspace Info";
+
+"View" = "View";
+"Enter Full Screen" = "Enter Full Screen";
+"Toggle Tray" = "Toggle Tray";
+
+"Window" = "Window";
+"Minimize" = "Minimize";
+"Zoom" = "Zoom";
+"Bring All to Front" = "Bring All to Front";
+
+"Help" = "Help";
+"Search" = "Search";
+"Ghostlab Help" = "Ghostlab Help";
+"Credits" = "Credits";
+"EULA" = "EULA";
+"Purchase License" = "Purchase License";
+"Enter License Key" = "Enter License Key";
+
+"Start Demo" = "Start Demo";
+"Continue Demo" = "Continue Demo";
+"Close" = "Close";
+" days left." = " days left.";
+"1 day left." = "1 day left.";
+"No days left. Please purchase a license." = "No days left. Please purchase a license.";
+"This license key is not valid. Please try again." = "This license key is not valid. Please try again.";
+"Activation" = "Activation";
+"Thank you for activating " = "Thank you for activating ";
+"Unfortunately, an error occurred during the activation of" = "Unfortunately, an error occurred during the activation of";
+"Unfortunately, an error occurred during deactivating " = "Unfortunately, an error occurred during deactivating";
+"Deactivation" = "Deactivation";
+"You have successfully deactivated " = "You have successfully deactivated ";
+"The application will quit now." = "The application will quit now.";
+"Unfortunately, an error while retrieving a demo license from the licensing server:\n" = "Unfortunately, an error while retrieving a demo license from the licensing server:\n";
+"Failed to contact the licensing server.\n\nPlease try again later." = "Failed to contact the licensing server.\n\nPlease try again later.";
+"Failed to parse response from the licensing server.\n\nPlease try again later." = "Failed to parse response from the licensing server.\n\nPlease try again later.";
+"Unexpected response from the licensing server:\n" = "Unexpected response from the licensing server:\n";
+"\n\nPlease try again later." = "\n\nPlease try again later.";
+"Licensing Error" = "Licensing Error";
