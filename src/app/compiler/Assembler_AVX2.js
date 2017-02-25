@@ -41,8 +41,9 @@ function Assembler(instructions)
 	var T_N_VL = Assembler.AVXtype.T_N_VL;
 	var T_DUP = Assembler.AVXtype.T_DUP;
 
-	var x0 = { type: 'register', id: 0 };
-	var x6 = { type: 'register', id: 6 };
+	var YMM0 = { type: 'register', id: 0 };
+	var YMM2 = { type: 'register', id: 2 };
+	var YMM6 = { type: 'register', id: 6 };
 
 	this.mnemonics = {
 		vaddpd: function(xmm, op1, op2) { that.opVex(xmm, op1, op2, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x58); },
@@ -56,7 +57,7 @@ function Assembler(instructions)
 		vcmppd: function(x1, x2, op, imm) { that.opVex(x1, x2, op, T_66 | T_0F | T_YMM, 0xC2, imm); },
 		vpcmpeqd: function(x1, x2, op) { that.opVex(x1, x2, op, T_66 | T_0F | T_YMM, 0x76); },
 		vcvtdq2pd: function(x, op) { that.opVex(x, null, op, T_0F | T_F3 | T_YMM | T_EVEX | T_EW0 | T_B32 | T_N8 | T_N_VL, 0xE6); },
-		vcvttpd2dq: function(x, op) { that.opVex(x, x0, op, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0xE6); },
+		vcvttpd2dq: function(x, op) { that.opVex(x, YMM0, op, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0xE6); },
 		vdivpd: function(xmm, op1, op2) { that.opVex(xmm, op1, op2, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x5E); },
 		vfmadd132pd: function(x1, x2, op) { that.opVex(x1, x2, op, T_66 | T_0F38 | T_W1 | T_EW1 | T_YMM | T_EVEX | T_B64, 0x98); },
 		vfmadd213pd: function(x1, x2, op) { that.opVex(x1, x2, op, T_66 | T_0F38 | T_W1 | T_EW1 | T_YMM | T_EVEX | T_B64, 0xA8); },
@@ -78,22 +79,25 @@ function Assembler(instructions)
 		vhaddpd: function(xmm, op1, op2) { that.opVex(xmm, op1, op2, T_66 | T_0F | T_YMM, 0x7C); },
 		vmaxpd: function(xmm, op1, op2) { that.opVex(xmm, op1, op2, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x5F); },
 		vminpd: function(xmm, op1, op2) { that.opVex(xmm, op1, op2, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x5D); },
-		vmovapd: function(xmm, op) { that.opVex(xmm, x0, op, T_66 | T_0F | T_EW1 | T_YMM | T_EVEX, 0x28); },
-		vmovmskpd: function(r, x) { that.opVex(r, x0, x, T_0F | T_66 | T_W0 | T_YMM, 0x50); },
+		vmovapd: function(xmm, op) { that.opVex(xmm, YMM0, op, T_66 | T_0F | T_EW1 | T_YMM | T_EVEX, 0x28); },
+		vmovmskpd: function(r, x) { that.opVex(r, YMM0, x, T_0F | T_66 | T_W0 | T_YMM, 0x50); },
 		vmulpd: function(xmm, op1, op2) { that.opVex(xmm, op1, op2, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x59); },
 		vorpd: function(xmm, op1, op2) { that.opVex(xmm, op1, op2, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x56); },
 		vpaddd: function(x1, x2, op) { that.opVex(x1, x2, op, T_66 | T_0F | T_EW0 | T_YMM | T_EVEX | T_B32, 0xFE); },
+		vpaddq: function(x1, x2, op) { that.opVex(x1, x2, op, T_66 | T_0F | T_EW1 | T_YMM | T_EVEX | T_B64, 0xD4); },
 		vpermilpd: function(x1, x2, op) { that.opVex(x1, x2, op, T_66 | T_66 | T_0F38 | T_W0 | T_EW1 | T_YMM | T_EVEX | T_B64, 0x0D); },
-		vpermpd: function(y, op, imm) { that.opVex(y, x0, op, T_66 | T_0F38 | T_W0 | T_EW1 | T_YMM | T_EVEX | T_B64, 0x01, imm); },
-		vpmovsxdq: function(xm, op) { that.opVex(xm, x0, op, T_66 | T_0F38 | T_EW0 | T_YMM | T_EVEX | T_N8 | T_N_VL, 0x25); },
-		vpmovzxdq: function(xm, op) { that.opVex(xm, x0, op, T_66 | T_0F38 | T_EW0 | T_YMM | T_EVEX | T_N8 | T_N_VL, 0x35); },
-		vpslld: function(x, op, imm) { that.opVex(x6, x, op, T_66 | T_0F | T_EW0 | T_YMM | T_EVEX | T_B32, 0x72, imm); },
-		vpsllq: function(x, op, imm) { that.opVex(x6, x, op, T_66 | T_0F | T_EW1 | T_YMM | T_EVEX | T_B64, 0x73, imm); },
-		vroundpd: function(xm, op, imm) { that.opVex(xm, x0, op, T_0F3A | T_66 | T_YMM, 0x09, imm); },
+		vpermpd: function(y, op, imm) { that.opVex(y, YMM0, op, T_66 | T_0F38 | T_W0 | T_EW1 | T_YMM | T_EVEX | T_B64, 0x01, imm); },
+		vpmovsxdq: function(xm, op) { that.opVex(xm, YMM0, op, T_66 | T_0F38 | T_EW0 | T_YMM | T_EVEX | T_N8 | T_N_VL, 0x25); },
+		vpmovzxdq: function(xm, op) { that.opVex(xm, YMM0, op, T_66 | T_0F38 | T_EW0 | T_YMM | T_EVEX | T_N8 | T_N_VL, 0x35); },
+		vpslld: function(x, op, imm) { that.opVex(YMM6, x, op, T_66 | T_0F | T_EW0 | T_YMM | T_EVEX | T_B32, 0x72, imm); },
+		vpsllq: function(x, op, imm) { that.opVex(YMM6, x, op, T_66 | T_0F | T_EW1 | T_YMM | T_EVEX | T_B64, 0x73, imm); },
+		vpsrld: function(x, op, imm) { that.opVex(YMM2, x, op, T_66 | T_0F | T_EW0 | T_YMM | T_EVEX | T_B32, 0x72, imm); },
+		vpsrlq: function(x, op, imm) { that.opVex(YMM2, x, op, T_66 | T_0F | T_EW1 | T_YMM | T_EVEX | T_B64, 0x73, imm); },
+		vroundpd: function(xm, op, imm) { that.opVex(xm, YMM0, op, T_0F3A | T_66 | T_YMM, 0x09, imm); },
 		vshufpd: function(x1, x2, op, imm) { that.opVex(x1, x2, op, T_66 | T_0F | T_EW1 | T_YMM | T_EVEX | T_B64, 0xC6, imm); },
-		vsqrtpd: function(xm, op) { that.opVex(xm, x0, op, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x51); },
+		vsqrtpd: function(xm, op) { that.opVex(xm, YMM0, op, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x51); },
 		vsubpd: function(xmm, op1, op2) { that.opVex(xmm, op1, op2, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x5C); },
-		vtestpd: function(xm, op) { that.opVex(xm, x0, op, T_66 | T_0F38 | T_YMM, 0x0F); },
+		vtestpd: function(xm, op) { that.opVex(xm, YMM0, op, T_66 | T_0F38 | T_YMM, 0x0F); },
 		vunpcklpd: function(x1, x2, op) { that.opVex(x1, x2, op, T_66 | T_0F | T_EW1 | T_YMM | T_EVEX | T_B64, 0x14); },
 		vxorpd: function(xmm, op1, op2) { that.opVex(xmm, op1, op2, T_0F | T_66 | T_EW1 | T_YMM | T_EVEX | T_ER_Z | T_B64, 0x57); }
 	};

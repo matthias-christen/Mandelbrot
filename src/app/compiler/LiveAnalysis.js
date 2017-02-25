@@ -127,7 +127,7 @@ LiveAnalysis.prototype.createStateMatrix = function(graph)
 		if (!registerModes)
 			throw new Error('Unknown instruction ' + instruction.code);
 		
-		// - a register becomes live if it is written to (it is the output operand)
+		// - a register becomes live if it is written to (i.e., if it is the output operand)
 		// - a register is killed when the instruction contains the last read
 		//   (pseudo registers are not reused, i.e., they are written only once)
 		
@@ -135,13 +135,13 @@ LiveAnalysis.prototype.createStateMatrix = function(graph)
 		var idx = 0;
 		for (var op of ops)
 		{
-			if (op.type !== 'register' || op.id < this.minRegisterIdx || (registerModes[idx] & CodeGenerator.Op.READ) === 0)
+			if (op.type !== 'register' || op.id < this.minRegisterIdx || (registerModes[idx++] & CodeGenerator.Op.READ) === 0)
 				continue;
 
 			// check the register
 			if (!graph.containsVertexWithData(op.id))
 				graph.addVertex(new Vertex(op.id));
-			
+
 			var nNextReadIdx = this.getNextRead(op, i);
 			if (nNextReadIdx === LiveAnalysis.NO_NEXT_READ)
 			{
@@ -151,15 +151,13 @@ LiveAnalysis.prototype.createStateMatrix = function(graph)
 			}
 			else
 				this.livePseudoRegisters[i][op.id] = nNextReadIdx - i;
-
-			++idx;
 		}
 
 		// new write register becomes live
 		idx = 0;
 		for (var op of ops)
 		{
-			if (op.type !== 'register' || op.id < this.minRegisterIdx || (registerModes[idx] & CodeGenerator.Op.WRITE) === 0)
+			if (op.type !== 'register' || op.id < this.minRegisterIdx || (registerModes[idx++] & CodeGenerator.Op.WRITE) === 0)
 				continue;
 
 			if (!graph.containsVertexWithData(op.id))
@@ -169,8 +167,6 @@ LiveAnalysis.prototype.createStateMatrix = function(graph)
 			this.livePseudoRegisters[i][op.id] = nNextReadIdx === LiveAnalysis.NO_NEXT_READ ?
 				LiveAnalysis.STATE_DEAD :
 				nNextReadIdx - i;
-
-			++idx;
 		}
 
 		// promote unassigned flags from previous instruction
@@ -237,18 +233,25 @@ LiveAnalysis.prototype.getNextRead = function(reg, nCurrentInstrIdx)
 			continue;
 						
 		// check input operands
+		var outputOperand;
 		for (var j = 0; j < lenOps; j++)
 		{
 			var op = ops[j];
-			if (reg.id === op.id && (registerModes[j] & CodeGenerator.Op.READ))
+			if (op.type === 'register')
 			{
-				// another, later read was found
-				return i;
+				if (reg.id === op.id && (registerModes[j] & CodeGenerator.Op.READ))
+				{
+					// another, later read was found
+					return i;
+				}
+
+				if (registerModes[j] & CodeGenerator.Op.WRITE)
+					outputOperand = op;
 			}
 		}
 
 		// check output operand: last read if no read occurred previously and the register is written to
-		if (reg.id === ops[0].id)
+		if (outputOperand && reg.id === outputOperand.id)
 			return LiveAnalysis.NO_NEXT_READ;
 	}
 	
@@ -282,7 +285,11 @@ LiveAnalysis.prototype.toString = function()
 		{
 			if (ops)
 				ops += ',';
-			ops += op.type.charAt(0) + op.id;
+
+			if (typeof op === 'number')
+				ops += op;
+			else
+				ops += op.type.charAt(0) + op.id;
 		}
 
 		var t = instr.code + ' ' + ops;

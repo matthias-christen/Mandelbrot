@@ -1,7 +1,7 @@
 /**
  * Colors the vertices of the graph <code>graph</code> using the greedy
  * algorithm.
- * See also http://code.google.com/p/annas/">http://code.google.com/p/annas/
+ * See also http://code.google.com/p/annas
  * 
  * @param graph
  *   The graph whose vertices to color
@@ -32,7 +32,7 @@ function colorGraph(graph)
 
 	return allColors.length;
 }
-	
+
 /**
  * Returns a collection of possible candidate colors for vertex <code>vertex</code>
  * @param vertices

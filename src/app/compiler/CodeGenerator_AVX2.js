@@ -71,12 +71,15 @@ CodeGenerator.mnemonics = {
 	vmulpd: [ Op.WRITE, Op.READ, Op.READ ],
 	vorpd: [ Op.WRITE, Op.READ, Op.READ ],
 	vpaddd: [ Op.WRITE, Op.READ, Op.READ ],
+	vpaddq: [ Op.WRITE, Op.READ, Op.READ ],
 	vpermilpd: [ Op.WRITE, Op.READ, Op.READ ],
 	vpermpd: [ Op.WRITE, Op.READ, Op.READ ],
 	vpmovsxdq: [ Op.WRITE, Op.READ ],
 	vpmovzxdq: [ Op.WRITE, Op.READ ],
 	vpslld: [ Op.WRITE, Op.READ, Op.READ ],
 	vpsllq: [ Op.WRITE, Op.READ, Op.READ ],
+	vpsrld: [ Op.WRITE, Op.READ, Op.READ ],
+	vpsrlq: [ Op.WRITE, Op.READ, Op.READ ],
 	vroundpd: [ Op.WRITE, Op.READ, Op.READ ],
 	vshufpd: [ Op.WRITE, Op.READ, Op.READ, Op.READ ],
 	vsqrtpd: [ Op.WRITE, Op.READ ],
@@ -293,4 +296,87 @@ CodeGenerator.prototype.toString = function()
 	}
 
 	return ret;
+};
+
+/**
+ * asm(".intel_syntax noprefix; vxorpd ymm15,ymm15,ymm15\nvmovupd [rbx],ymm15" : : "a"(a), "b"(r)); printf("ymm15 = %.10f, %.10f, %.10f, %.10f\n", r[0], r[1], r[2], r[3]);
+ */
+CodeGenerator.prototype.generateDebugCode = function()
+{
+	var code = '';
+
+	var lenConstants = this.constants.length;
+	for (var i = 0; i < lenConstants; i++)
+	{
+		var c = this.constants[i];
+
+		code += 'addConstant(consts, ' + i + ', ';
+
+		switch (c.type)
+		{
+		case 'double':
+			code += c.value === undefined ? '0.0' : '(double) ' + c.value;
+			break;
+		case 'int64':
+			code += '(uint64_t) ' + c.value + 'ull';
+			break;
+		case 'int32':
+			code += '(uint32_t) ' + c.value;
+		}
+
+		code += ');\n';
+	}
+
+	var lines = [];
+	var lenInstructions = this.instructions.length;
+
+	for (var i = 0; i < lenInstructions; i++)
+	{
+		var inst = this.instructions[i];
+		var line = inst.code + ' ';
+		var l = inst.ops.length;
+		var regtype = [ 'y', 'y', 'y', 'y' ];
+
+		switch (inst.code)
+		{
+		case 'vcvttpd2dq':
+			regtype[0] = 'x';
+			break;
+		case 'vpmovsxdq':
+		case 'vpmovzxdq':
+		case 'vcvttpd2dq':
+		case 'vcvtdq2pd':
+			regtype[1] = 'x';
+			break;
+		}
+
+		for (var j = 0; j < l; j++)
+		{
+			if (j > 0)
+				line += ',';
+			
+			var op = inst.ops[j];
+			if (typeof op === 'number')
+				line += op;
+			else if (op.type === 'register')
+				line += regtype[j] + 'mm' + op.id;
+			else if (op.type === 'constant')
+				line += '[rax+' + (32 * op.id) + ']';
+		}
+
+		lines.push(line);
+	}
+
+	var len = lines.length;
+	for (var i = 0; i < len; i++)
+	{
+		code += 'asm(".intel_syntax noprefix; ';
+		for (var j = 0; j <= i; j++)
+			code += lines[j] + '\\n';
+		var m = lines[i].match(/([a-z0-9]+) ([xy]mm\d+)/);
+		var reg = 'y' + m[2].substr(1);
+		code += 'vmovupd [rbx],' + reg + '" : : "a"(a), "b"(r));printf("' + m[1] + ': %.10f, %.10f, %.10f, %.10f\\n", r[0], r[1], r[2], r[3]);\n';
+	}
+
+	return code;
 };
