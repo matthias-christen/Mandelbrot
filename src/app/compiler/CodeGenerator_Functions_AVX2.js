@@ -65,7 +65,7 @@ CodeGenerator.prototype.sqrt = function(arg)
 	this.instructions.push({ code: 'vsqrtpd', ops: [ im, tmp2 ] });
 
 	var sgn = this.createRegister();
-	this.instructions.push({ code: 'vandpd', ops: [ sgn, arg.im, this.getBitConstant(0x8000000000000000, 64) ] });
+	this.instructions.push({ code: 'vandpd', ops: [ sgn, arg.im, this.getBitConstant(0x80000000, 0x00000000) ] });
 	var imSgn = this.createRegister();
 	this.instructions.push({ code: 'vxorpd', ops: [ imSgn, im, sgn ] });
 

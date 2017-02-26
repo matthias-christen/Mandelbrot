@@ -21,6 +21,8 @@ ExpressionOptimizer.prototype.unaryExpression = function(expr)
 			im: f * expr.arg.im
 		}
 	}
+
+	return expr;
 };
 
 ExpressionOptimizer.prototype.binaryExpression = function(expr)
@@ -156,16 +158,16 @@ ExpressionOptimizer.prototype.binaryExpression = function(expr)
 			}
 
 			// integer power
-			if (b.re === (b.re | 0) && -64 <= b.re && b.re <= 64)
+			if (right.re === (right.re | 0) && -64 <= right.re && right.re <= 64)
 			{
 				var pow = {
 					type: 'binaryExpression',
 					op: '^int',
-					left: a,
-					right: b
+					left: left,
+					right: { re: Math.abs(right.re), im: 0 }
 				};
 
-				return b.re > 0 ?
+				return right.re > 0 ?
 					pow :
 					{
 						type: 'binaryExpression',
@@ -186,9 +188,9 @@ ExpressionOptimizer.prototype.binaryExpression = function(expr)
 				left: {
 					type: 'functionExpression',
 					name: 'log',
-					arg: a
+					arg: left
 				},
-				right: b
+				right: right
 			}
 		};
 	}
@@ -200,4 +202,5 @@ ExpressionOptimizer.prototype.functionExpression = function(expr)
 {
 	if (expr.arg.type === 'number' && Complex[expr.name])
 		return Complex[expr.name](expr.arg);
+	return expr;
 };

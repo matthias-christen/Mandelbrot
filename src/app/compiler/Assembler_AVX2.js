@@ -226,9 +226,9 @@ Assembler.prototype.vex = function(reg, base, /* Operand */ v, type, code, x)
 // reg is reg field of ModRM
 Assembler.prototype.opAddr = function(addr, reg)
 {
-	// ymmptr [rax + disp]; disp = 32 * constant.id
+	// ymmword ptr [rdi + disp]; disp = 32 * constant.id
 	var disp = addr.id * 32;
-	var baseIdx = 0; // rax
+	var baseIdx = 7; // rdi
 
 	if (disp === 0)
 		this.setModRM(0, reg, baseIdx);

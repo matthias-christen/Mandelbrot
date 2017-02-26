@@ -7,8 +7,7 @@ function CodeGenerator(expr)
 
 	this.constants = [];
 	this.floatConstants = new Map();
-	this.intConstants64 = new Map();
-	this.intConstants32 = new Map();
+	this.intConstants = new Map();
 
 	this.constReCMin = this.getConstant();
 	this.constImCMin = this.getConstant();
@@ -115,18 +114,16 @@ CodeGenerator.prototype.getConstants = function(c1, c2, c3, c4)
 	return { type: 'constant', id: id };
 };
 
-CodeGenerator.prototype.getBitConstant = function(c, bits)
+CodeGenerator.prototype.getBitConstant = function(hi, lo)
 {
-	if (bits !== 32 && bits !== 64)
-		throw new Error('Unsupported bit value: ' + bits);
+	var key = String(hi) + ':' + (lo === undefined ? '' : String(lo));
+	var id = this.intConstants.get(key);
 
-	var map = bits === 32 ? this.intConstants32 : this.intConstants64;
-	var id = map.get(c);
 	if (id === undefined)
 	{
 		id = this.constants.length;
-		map.set(c, id);
-		this.constants.push({ type: 'int' + bits, value: c });
+		this.intConstants.set(key, id);
+		this.constants.push({ type: 'int', value: lo === undefined ? hi : [ hi, lo ] });
 	}
 
 	return { type: 'constant', id: id };
@@ -253,9 +250,9 @@ CodeGenerator.prototype.functionExpression = function(expr)
 {
 	var f = CodeGenerator.prototype[expr.name];
 	if (f)
-		f.call(this, this.generate(expr.arg));
-	else
-		throw new Error('Unsupported function ' + expr.name);
+		return f.call(this, this.generate(expr.arg));
+
+	throw new Error('Unsupported function ' + expr.name);
 };
 
 CodeGenerator.prototype.toString = function()

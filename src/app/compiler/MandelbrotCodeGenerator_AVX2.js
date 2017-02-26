@@ -1,5 +1,6 @@
-function MandelbrotCodeGenerator()
+function MandelbrotCodeGenerator(expr)
 {
+	CodeGenerator.call(this, expr);
 }
 
 MandelbrotCodeGenerator.prototype = new CodeGenerator();
@@ -8,15 +9,21 @@ MandelbrotCodeGenerator.prototype = new CodeGenerator();
 MandelbrotCodeGenerator.prototype.generate = function(expr)
 {
 	// registers:
-	// %rax: pointer to constants
-	// %rcx: iteration count (counts down from maxIter to 0)
-	// %rdx: comparison mask
-	// %rbx: pointer to result array
-	// %r9: current escape count
-	// %r10: xmax
+
+	// - initialized by caller:
+	// (Unix / Windows)
+	// %rdi / %rcx: pointer to constants
+	// %rsi / %rdx: pointer to results
+	// %rdx / %r8: width/4 (xmax)
+	// %rcx / %r9: height (ymax and y-counter)
+	// %r8: maxIter
+
+	// - internal usage:
+	// %rax: iteration count (counts down from maxIter to 0)
+	// %rbx: comparison mask
+	// %r10: current escape count
 	// %r11: x-counter
-	// %r12: y-counter
-	// %r13: maxIter
+	// %r14, %r15: temporary
 
 	// constants:
 	// 0x00: xmin
@@ -26,24 +33,20 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 	// 0x80: radius
 
 	/*
-	  ; initialization (before calling the generated code)
-	  ; * init %rax with the pointer to the constants
-	  ; * init %rbx with the pointer to the result
-	  ; * init %r10 with xmax (ceil(0.25 * number of points) in x-direction to compute)
-	  ; * init %r12 with ymax
-	  ; * init %r13 with maxIter
-	*/
+	  ; save registers
+	  push rbx
+	  push r14
+	  push r15
 
-	/*
       ; c <- (Re(c), Im(c0))
-      vmovapd ymm3, ymmword ptr [rax+0x20]
+      vmovapd ymm3, ymmword ptr [rdi+0x20]
 
 	NEXT_Y:
 	  ; c <- (Re(c0), Im(c))
-	  vmovapd ymm2, ymmword ptr [rax]
+	  vmovapd ymm2, ymmword ptr [rdi]
 
 	  ; xCounter <- xmax
-	  mov r11, r10
+	  mov r11, rdx
 
 	NEXT_X:
 	  ; z <- 0
@@ -51,11 +54,11 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 	  vxorpd ymm1, ymm1, ymm1
 
 	  ; iterCount <- maxIter
-	  mov rcx, r13
+	  mov rax, r8
 
 	  ; iters <- 0
-	  xor r9, r9
-	  xor rdx, rdx
+	  xor r10, r10
+	  xor rbx, rbx
 	NEXT_ITER:
 	*/
 
@@ -75,57 +78,63 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 		this.instructions.push({ code: 'vmulpd', ops: [ abs, this.variables.x, this.variables.x ] });
 		this.instructions.push({ code: 'vfmadd231pd', ops: [ abs, this.variables.y, this.variables.y ] });
 
-		// compare abs <= radius; move to mask (in %rdx)
+		// compare abs <= radius; move to mask (in %rbx)
 		var cmp = this.createRegister();
 		this.instructions.push({ code: 'vcmppd', ops: [ cmp, abs, this.constRadius, 17 /* LT_OQ */ ] });
-		this.instructions.push({ code: 'vmovmskpd', ops: [ { type: 'gpr', id: 2 /* %rdx */ }, cmp ] });
+		this.instructions.push({ code: 'vmovmskpd', ops: [ { type: 'gpr', id: 3 /* %rbx */ }, cmp ] });
 
 		/*
 		  ; test if all orbits have escaped
-		  or rdx, rdx
+		  or rbx, rbx
 		  jz EXIT
 
-		  ; %rdx contains the test results (bits 0:3): abcd
-		  ; in %r8, create the bits spaced apart so %r8 can be used to increment the counter,
+		  ; %rbx contains the test results (bits 0:3): abcd
+		  ; in %r15, create the bits spaced apart so %r15 can be used to increment the counter,
 		  ; 00..00a 00..00b 00..00c 00..00d
-		  mov r8, rdx
-		  shl rdx, 15
-		  or r8, rdx
-		  shl rdx, 15
-		  or r8, rdx
-		  shl rdx, 15
-		  or r8, rdx
-		  mov rdx, 0x0001000100010001
-		  and r8, rdx
+		  mov r15, rbx
+		  shl rbx, 15
+		  or r15, rbx
+		  shl rbx, 15
+		  or r15, rbx
+		  shl rbx, 15
+		  or r15, rbx
+		  mov rbx, 0x0001000100010001
+		  and r15, rbx
 
 		  ; increment the counter
-		  add r9, r8
+		  add r10, r15
 
 		  ; decrement the iteration count and go to the next iteration
-		  dec rcx
+		  dec rax
 		  jnz NEXT_ITER
 
 		EXIT:
 		  ; convert the iteration count to base 128 (to be used in JavaScript strings)
-		  mov r14, r9
+		  mov r14, r10
 		  shl r14, 1
-		  mov rdx, 0x007f007f007f007f
-		  and r9, rdx
-		  shl rdx, 8
-		  and r14, rdx
-		  or r9, r14
-		  mov [rbx], r9
-		  add rbx, 8
+		  mov rbx, 0x007f007f007f007f
+		  and r10, rbx
+		  shl rbx, 8
+		  and r14, rbx
+		  or r10, r14
+		  mov [rsi], r10
+		  add rsi, 8
 
 		  ; next x
-		  vaddpd ymm2, ymm2, ymmword ptr [rax+0x40]
+		  vaddpd ymm2, ymm2, ymmword ptr [rdi+0x40]
 		  dec r11
 		  jnz NEXT_X
 
 		  ; next y
-		  vaddpd ymm3, ymmword ptr [rax+0x60]
-		  dec r12
+		  vaddpd ymm3, ymm3, ymmword ptr [rdi+0x60]
+		  dec rcx
 		  jnz NEXT_Y
+
+		  ; restore registers
+		  pop r15
+		  pop r14
+		  pop rbx
+
 		  ret
 		*/
 	}

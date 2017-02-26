@@ -53,7 +53,7 @@ APPEND_PLATFORM_SOURCES(APP_SRCS)
 # app resources
 set(APP_RESOURCES)
 set(APP_RESOURCES_MACOSX
-  res/mac/Images.xcassets
+#  res/mac/Images.xcassets
   ${WEBAPP_DIR}
 )
 set(APP_RESOURCES_WINDOWS

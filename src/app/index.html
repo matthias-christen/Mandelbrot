@@ -13,6 +13,7 @@
 		<script src="compiler/CodeGenerator_Functions_AVX2.js"></script>
 		<script src="compiler/Graph.js"></script>
 		<script src="compiler/GraphColoringGreedy.js"></script>
+		<!--<script src="compiler/GraphColoringWelshPowell.js"></script>-->
 		<script src="compiler/LiveAnalysis.js"></script>
 		<script src="compiler/RegisterAllocator.js"></script>
 		<script src="compiler/Assembler_AVX2.js"></script>
@@ -61,10 +62,16 @@
 			function compute()
 			{
 				app.executeCode(
-					-2.1, -1.4, 0.7, 1.4,
-					2.8 / 512, 2.8 / 512,
-					2,
-					500,
+					{
+						xmin: -2.1,
+						ymin: -1.4,
+						xmax: 0.7,
+						ymax: 1.4,
+						dx: 2.8 / 512,
+						dy: 2.8 / 512,
+						radius: 2,
+						maxIter: 500
+					},
 					function(width, height, result)
 					{
 						console.log(width + ' x ' + height);
@@ -98,12 +105,25 @@
 			function test()
 			{
 				var cg = new CodeGenerator();
-				var reg = cg.createRegister();
+				var reg1 = cg.createRegister();
+				var reg2 = cg.createRegister();
 				cg.instructions.push({
 					code: 'vmovapd',
-					ops: [ reg, cg.getConstants(1.0, 10.0, 100.0, 1000.0) ]
+					// ops: [ reg1, cg.getConstants(1.0, 10.0, 100.0, 1000.0) ]
+					//ops: [ reg1, cg.getConstants(0, -1.0, -123.4, 55.5) ]
+					//ops: [ reg1, cg.getConstants(0, 1.0, 10.0, -0.5) ]
+					ops: [ reg1, cg.getConstants(0, -1.0, 0.00768, 2.1) ]
 				});
-				var ret = cg._real_sincos(reg);
+				/*
+				cg.instructions.push({
+					code: 'vmovapd',
+					ops: [ reg2, cg.getConstants(-1,  0,      8.9, -0.1) ]
+				});*/
+				//var ret = cg._real_sincos(reg1);
+				//var ret = cg._real_atan2(reg2, reg1);
+				//var ret = cg._real_exp(reg1);
+				var ret = cg._real_log(reg1);
+				/*
 				cg.instructions.push({
 					code: 'vmovapd',
 					ops: [ { type: 'register', id: 0 }, ret.sin ]
@@ -111,6 +131,11 @@
 				cg.instructions.push({
 					code: 'vmovapd',
 					ops: [ { type: 'register', id: 1 }, ret.cos ]
+				});
+				*/
+				cg.instructions.push({
+					 code: 'vmovapd',
+					 ops: [ { type: 'register', id: 0 }, ret ]
 				});
 
 				allocateRegisters(
@@ -120,15 +145,34 @@
 				);
 
 				console.log(cg.toString());
+				console.log('===');
+				//console.log(cg.generateDebugCode());
+
 				var asm = new Assembler(cg.instructions);
 				asm.run();
+				asm.code.push(0xc5, 0xfd, 0x29, 0x06); // vmovapd YMMWORD PTR [rsi],ymm0
+				asm.code.push(0xc5, 0xfd, 0x29, 0x4e, 0x20); // vmovapd YMMWORD PTR [rsi+0x20],ymm1
 				asm.code.push(0xc3); // ret
 
 				console.log(asm.code.map(x => ('0' + x.toString(16)).substr(-2)).join(' '));
 
+				/*
+				for (var i = 0; i < cg.constants.length; i++)
+					console.log(JSON.stringify(cg.constants[i]));
+				*/
+
 				app.compileCode(asm.code, cg.constants, function()
 				{
-					app.executeCode(0, 1, 0, 1, 1, 1, 0, 0);
+					app.executeCode({
+						xmin: 0,
+						ymin: 0,
+						xmax: 8,
+						ymax: 1,
+						dx: 0.5,
+						dy: 0.5,
+						radius: 0,
+						maxIter: 0
+					});
 				});
 			}
 
@@ -137,11 +181,13 @@
 				$canvas = $('#canvas');
 				ctx = $canvas[0].getContext("2d");
 
-				test();
+				//test();
 
 				$formula = $('.input-formula');
 				$formula.change(function()
 				{
+					compile($formula.val(), compute);
+					/*
 					try
 					{
 						compile($formula.val(), compute);
@@ -149,7 +195,7 @@
 					catch (e)
 					{
 						// error message
-					}
+					}*/
 				});
 
 				$compute = $('.btn-compute');

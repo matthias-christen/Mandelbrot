@@ -30,7 +30,7 @@ CodeGenerator.prototype._real_cabs = function(arg)
 CodeGenerator.prototype._real_abs = function(arg)
 {
 	var ret = this.createRegister();
-	this.instructions.push({ code: 'vandnpd', ops: [ ret, arg, this.getBitConstant(0x8000000000000000, 64) ] });
+	this.instructions.push({ code: 'vandnpd', ops: [ ret, arg, this.getBitConstant(0x80000000, 0x00000000) ] });
 	return ret;
 };
 
@@ -70,14 +70,14 @@ CodeGenerator.prototype._real_log = function(arg)
 {
     // arg = frexp(arg, &exp);
     var noExpMask = this.createRegister();
-    this.instructions.push({ code: 'vmovapd', ops: [ noExpMask, this.getBitConstant(0x800fffffffffffff, 64) ] });
+    this.instructions.push({ code: 'vmovapd', ops: [ noExpMask, this.getBitConstant(0x800fffff, 0xffffffff) ] });
 
     // filter out mantissa
     var tmp1 = this.createRegister();
     this.instructions.push({ code: 'vandpd', ops: [ tmp1, arg, noExpMask ] });
     // set the new exponent
     var x = this.createRegister();
-    this.instructions.push({ code: 'vorpd', ops: [ x, tmp1, this.getBitConstant(0x3fe0000000000000, 64) ] });
+    this.instructions.push({ code: 'vorpd', ops: [ x, tmp1, this.getBitConstant(0x3fe00000, 0x00000000) ] });
 
     // filter out exponent
     var tmp2 = this.createRegister();
@@ -196,7 +196,7 @@ CodeGenerator.prototype._real_log = function(arg)
     
     // abs(e)<=2
     var tmp11 = this.createRegister();
-    this.instructions.push({ code: 'vandpd', ops: [ tmp11, newExp, this.getBitConstant(0x8000000000000000, 64) ] });
+    this.instructions.push({ code: 'vandpd', ops: [ tmp11, newExp, this.getBitConstant(0x80000000, 0x00000000) ] });
     var maskLe2 = this.createRegister();
     this.instructions.push({ code: 'vcmppd', ops: [ maskLe2, tmp11, this.getConstant(2), 18 ] });
     
@@ -223,12 +223,12 @@ CodeGenerator.prototype._real_log = function(arg)
     this.instructions.push({ code: 'vcmppd', ops: [ maskLe0, arg, zero, 18 ] });
     // NaN
     var tmp12 = this.createRegister();
-    this.instructions.push({ code: 'vblendvpd', ops: [ tmp12, z0, this.getConstant(NaN), maskLe0 ] });
+    this.instructions.push({ code: 'vblendvpd', ops: [ tmp12, z0, this.getBitConstant(0x7ff80000, 0x00000000 /*NaN*/), maskLe0 ] });
     var maskEq0 = this.createRegister();
     this.instructions.push({ code: 'vpcmpeqd', ops: [ maskEq0, arg, zero ] });
     // -Inf
     var ret = this.createRegister();
-    this.instructions.push({ code: 'vblendvpd', ops: [ ret, tmp12, this.getConstant(-Infinity), maskEq0 ] });
+    this.instructions.push({ code: 'vblendvpd', ops: [ ret, tmp12, this.getBitConstant(0xfff00000, 0x00000000 /*-Infinity*/), maskEq0 ] });
     
     return ret;
 };
@@ -304,7 +304,7 @@ CodeGenerator.prototype._real_exp = function(arg)
     this.instructions.push({ code: 'vcvttpd2dq', ops: [ argRounded, argRounded ] });
     this.instructions.push({ code: 'vpmovzxdq', ops: [ argRounded, argRounded ] });
     var tmp5 = this.createRegister();
-    this.instructions.push({ code: 'vpaddd', ops: [ tmp5, argRounded, this.getBitConstant(1023, 64) ] });
+    this.instructions.push({ code: 'vpaddd', ops: [ tmp5, argRounded, this.getBitConstant(0, 1023) ] });
     var tmp6 = this.createRegister();
     this.instructions.push({ code: 'vpsllq', ops: [ tmp6, tmp5, 52 ] });
     var ret = this.createRegister();
@@ -321,7 +321,7 @@ CodeGenerator.prototype._real_sincos = function(arg)
 {
     // load the sign mask
     var signMask = this.createRegister();
-    this.instructions.push({ code: 'vmovapd', ops: [ signMask, this.getBitConstant(0x8000000000000000, 64) ] });
+    this.instructions.push({ code: 'vmovapd', ops: [ signMask, this.getBitConstant(0x80000000, 0x00000000) ] });
 
     // save the sign bit
     var signBit = this.createRegister();
@@ -346,7 +346,7 @@ CodeGenerator.prototype._real_sincos = function(arg)
     var truncY = this.createRegister();
     this.instructions.push({ code: 'vcvttpd2dq', ops: [ truncY, tmp2 ] });
     var tmp3 = this.createRegister();
-    this.instructions.push({ code: 'vandpd', ops: [ tmp3, truncY, this.getBitConstant(1, 32) ] });
+    this.instructions.push({ code: 'vandpd', ops: [ tmp3, truncY, this.getBitConstant(1) ] });
     // j += 1
     var j = this.createRegister();
     this.instructions.push({ code: 'vpaddd', ops: [ j, truncY, tmp3 ] });
@@ -357,7 +357,7 @@ CodeGenerator.prototype._real_sincos = function(arg)
     this.instructions.push({ code: 'vaddpd', ops: [ y1, roundY, dblJ ] });
 
     var tmp4 = this.createRegister();
-    this.instructions.push({ code: 'vandpd', ops: [ tmp4, j, this.getBitConstant(4, 32) ] });
+    this.instructions.push({ code: 'vandpd', ops: [ tmp4, j, this.getBitConstant(4) ] });
     // move mask to highest position
     var tmp5 = this.createRegister();
     this.instructions.push({ code: 'vpslld', ops: [ tmp5, tmp4, 29 ] });
@@ -371,7 +371,7 @@ CodeGenerator.prototype._real_sincos = function(arg)
     this.instructions.push({ code: 'vxorpd', ops: [ sinSignBit, signBit, mask ] });
 
     var cmp = this.createRegister();
-    this.instructions.push({ code: 'vandpd', ops: [ cmp, j, this.getBitConstant(3, 32) ] });
+    this.instructions.push({ code: 'vandpd', ops: [ cmp, j, this.getBitConstant(3) ] });
     var zero = this.createRegister();
     this.instructions.push({ code: 'vxorpd', ops: [ zero, zero, zero ] });
     var cmpMask = this.createRegister();
@@ -386,9 +386,9 @@ CodeGenerator.prototype._real_sincos = function(arg)
 
     // compute the sign bit for "cos"
     var tmp7 = this.createRegister();
-    this.instructions.push({ code: 'vsubpd', ops: [ tmp7, j, this.getBitConstant(2, 32) ] });
+    this.instructions.push({ code: 'vsubpd', ops: [ tmp7, j, this.getBitConstant(2) ] });
     var tmp8 = this.createRegister();
-    this.instructions.push({ code: 'vandnpd', ops: [ tmp8, tmp7, this.getBitConstant(4, 32) ] });
+    this.instructions.push({ code: 'vandnpd', ops: [ tmp8, tmp7, this.getBitConstant(4) ] });
     var tmp9 = this.createRegister();
     this.instructions.push({ code: 'vpslld', ops: [ tmp9, tmp8, 29 ] });
     var tmp10 = this.createRegister();
@@ -509,7 +509,7 @@ CodeGenerator.prototype._real_atan2 = function(y, x)
     var z = this.createRegister();
     this.instructions.push({ code: 'vdivpd', ops: [ z, y, x ] });
     var signMask = this.createRegister();
-    this.instructions.push({ code: 'vmovapd', ops: [ signMask, this.getBitConstant(0x8000000000000000, 64) ] });
+    this.instructions.push({ code: 'vmovapd', ops: [ signMask, this.getBitConstant(0x80000000, 0x00000000) ] });
     var signBit = this.createRegister();
     this.instructions.push({ code: 'vandpd', ops: [ signBit, z, signMask ] });
     var absX = this.createRegister();
