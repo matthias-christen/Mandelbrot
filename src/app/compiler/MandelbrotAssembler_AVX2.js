@@ -33,12 +33,30 @@ MandelbrotAssembler.prototype.run = function()
     // 0x80: radius
 
 
+    var isWindows = navigator.userAgent.indexOf('Windows') >= 0;
+
     // prologue
+    if (isWindows)
+    {
+        this.code.push(
+            0x58,                     // pop    rax
+            0x57,                     // push   rdi
+            0x56,                     // push   rsi
+            0x48, 0x89, 0xcf,         // mov    rdi,rcx
+            0x48, 0x89, 0xd6,         // mov    rsi,rdx
+            0x4c, 0x89, 0xc2,         // mov    rdx,r8
+            0x4c, 0x89, 0xc9,         // mov    rcx,r9
+            0x49, 0x89, 0xc0          // mov    r8,rax
+        );
+    }
+
     this.code.push(
         0x53,                         // push   rbx
         0x41, 0x56,                   // push   r14
-        0x41, 0x57,                   // push   r15
+        0x41, 0x57                    // push   r15
+    );
 
+    this.code.push(
         0xc5, 0xfd, 0x28, 0x5f, 0x20  // vmovapd ymm3,YMMWORD PTR [rdi+0x20]
     );
 
@@ -113,8 +131,18 @@ MandelbrotAssembler.prototype.run = function()
 
         0x41, 0x5f,                   // pop    r15
         0x41, 0x5e,                   // pop    r14
-        0x5b,                         // pop    rbx
+        0x5b                          // pop    rbx
+    );
 
+    if (isWindows)
+    {
+        this.code.push(
+            0x5e,                     // pop    rsi
+            0x5f                      // pop    rdi
+        );
+    }
+
+    this.code.push(
         0xc3                          // ret
     );
 

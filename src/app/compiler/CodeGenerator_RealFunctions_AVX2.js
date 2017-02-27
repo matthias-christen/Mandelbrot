@@ -19,7 +19,7 @@ CodeGenerator.prototype._real_cabs_square = function(arg)
 CodeGenerator.prototype._real_cabs = function(arg)
 {
 	var ret = this.createRegister();
-	this.instructions.push({ code: 'vsqrtpd', ops: [ ret, this._real_abs_square(arg) ] });
+	this.instructions.push({ code: 'vsqrtpd', ops: [ ret, this._real_cabs_square(arg) ] });
 	return ret;
 };
 

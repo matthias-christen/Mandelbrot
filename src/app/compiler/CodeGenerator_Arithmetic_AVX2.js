@@ -5,27 +5,30 @@ CodeGenerator.prototype.add = function(left, right)
 		im: this.createRegister()
 	};
 
-	if (right.type === 'number')
+	// if the left operand is a number, swap it with right
+	// (note that not both left and right can be numbers, the expression optimizer
+	// has taken care that constants are folded)
+	if (left.type === 'number')
 	{
 		var tmp = left;
 		left = right;
 		right = tmp;
 	}
 
-	var isLeftNumber = left.type === 'number';
+	var isRightNumber = right.type === 'number';
 
-	if (isLeftNumber)
-		left = this.number(left, left.re !== 0, left.im !== 0);
+	if (isRightNumber)
+		right = this.number(right, right.re !== 0, right.im !== 0);
 
 	// add real part
-	if (isLeftNumber && left.re === 0)
-		result.re = right.re;
+	if (isRightNumber && right.re === 0)
+		result.re = left.re;
 	else
 		this.instructions.push({ code: 'vaddpd', ops: [ result.re, left.re, right.re ] });
 
 	// add imaginary part
-	if (isLeftNumber && left.im === 0)
-		result.im = right.im;
+	if (isRightNumber && right.im === 0)
+		result.im = left.im;
 	else
 		this.instructions.push({ code: 'vaddpd', ops: [ result.im, left.im, right.im ] });
 
@@ -56,6 +59,13 @@ CodeGenerator.prototype.subtract = function(left, right)
 	}	
 	else if (isRightNumber && right.re === 0)
 		result.re = left.re;
+	else if (isLeftNumber)
+	{
+		// load the constant and subtract
+		var tmp = this.createRegister();
+		this.instructions.push({ code: 'vmovapd', ops: [ tmp, left.re ] });
+		this.instructions.push({ code: 'vsubpd', ops: [ result.re, tmp, right.re ] });
+	}
 	else
 		this.instructions.push({ code: 'vsubpd', ops: [ result.re, left.re, right.re ] });
 
@@ -64,10 +74,16 @@ CodeGenerator.prototype.subtract = function(left, right)
 	{
 		var tmp = this.createRegister();
 		this.instructions.push({ code: 'vxorpd', ops: [ tmp, tmp, tmp ] });
-		this.instructions.push({ code: 'vsubpd', ops: [ result.im, tmp, right.im ] });			
+		this.instructions.push({ code: 'vsubpd', ops: [ result.im, tmp, right.im ] });
 	}
 	else if (isRightNumber && right.im === 0)
 		result.im = left.im;
+	else if (isLeftNumber)
+	{
+		var tmp = this.createRegister();
+		this.instructions.push({ code: 'vmovapd', ops: [ tmp, left.im ] });
+		this.instructions.push({ code: 'vsubpd', ops: [ result.im, tmp, right.im ] });		
+	}
 	else
 		this.instructions.push({ code: 'vsubpd', ops: [ result.im, left.im, right.im ] });
 	
@@ -81,91 +97,91 @@ CodeGenerator.prototype.multiply = function(left, right)
 		im: this.createRegister()
 	};
 
-	if (right.type === 'number')
+	if (left.type === 'number')
 	{
 		var tmp = left;
 		left = right;
 		right = tmp;
 	}
 
-	var isLeftNumber = left.type === 'number';
+	var isRightNumber = right.type === 'number';
 	var isSpecialCaseHandled = false;
 
 	// result.re <- left.re * right.re - left.im * right.im
 	// result.im <- left.re * right.im + left.im * right.re
 
-	if (isLeftNumber)
+	if (isRightNumber)
 	{
 		// note: not both re and im can be 0 (was already filtered out by ExpressionOptimizer)
-		if (left.re === 0)
+		if (right.re === 0)
 		{
 			isSpecialCaseHandled = true;
 
-			if (left.im === 1)
+			if (right.im === 1)
 			{
 				// * i
 				var tmp = this.createRegister();
 				this.instructions.push({ code: 'vxorpd', ops: [ tmp, tmp, tmp ] });
-				this.instructions.push({ code: 'vsubpd', ops: [ result.re, tmp, right.im ] });
+				this.instructions.push({ code: 'vsubpd', ops: [ result.re, tmp, left.im ] });
 
-				result.im = right.re;
+				result.im = left.re;
 			}
-			else if (left.im === -1)
+			else if (right.im === -1)
 			{
 				// * (-i)
-				result.re = right.im;
+				result.re = left.im;
 
 				var tmp = this.createRegister();
 				this.instructions.push({ code: 'vxorpd', ops: [ tmp, tmp, tmp ] });
-				this.instructions.push({ code: 'vsubpd', ops: [ result.re, tmp, right.im ] });
+				this.instructions.push({ code: 'vsubpd', ops: [ result.re, tmp, left.im ] });
 
 				return result;
 			}
-			else if (left.im === 2)
+			else if (right.im === 2)
 			{
 				// * 2i
 				var tmp1 = this.createRegister();
 				var tmp2 = this.createRegister();
 
 				this.instructions.push({ code: 'vxorpd', ops: [ tmp1, tmp1, tmp1 ] });
-				this.instructions.push({ code: 'vsubpd', ops: [ tmp2, tmp1, right.im ]});
-				this.instructions.push({ code: 'vsubpd', ops: [ result.re, tmp2, right.im ]});
+				this.instructions.push({ code: 'vsubpd', ops: [ tmp2, tmp1, left.im ]});
+				this.instructions.push({ code: 'vsubpd', ops: [ result.re, tmp2, left.im ]});
 
-				this.instructions.push({ code: 'vaddpd', ops: [ result.im, right.re, right.re ] });
+				this.instructions.push({ code: 'vaddpd', ops: [ result.im, left.re, left.re ] });
 			}
-			else if (left.im === -2)
+			else if (right.im === -2)
 			{
 				// * (-2i)
 				var tmp1 = this.createRegister();
 				var tmp2 = this.createRegister();
 
-				this.instructions.push({ code: 'vaddpd', ops: [ result.re, right.im, right.im ] });
+				this.instructions.push({ code: 'vaddpd', ops: [ result.re, left.im, left.im ] });
 
 				this.instructions.push({ code: 'vxorpd', ops: [ tmp1, tmp1, tmp1 ] });
-				this.instructions.push({ code: 'vsubpd', ops: [ tmp2, tmp1, right.re ]});
-				this.instructions.push({ code: 'vsubpd', ops: [ result.im, tmp2, right.re ]});
+				this.instructions.push({ code: 'vsubpd', ops: [ tmp2, tmp1, left.re ]});
+				this.instructions.push({ code: 'vsubpd', ops: [ result.im, tmp2, left.re ]});
 			}
 			else
 			{
-				var c = this.getConstant(left.im);
+				var c = this.getConstant(right.im);
 
 				this.instructions.push({ code: 'vxorpd', ops: [ result.re, result.re, result.re ] });
-				this.instructions.push({ code: 'vfnmadd231pd', ops: [ result.re, c, right.im ] })
+				this.instructions.push({ code: 'vfnmadd231pd', ops: [ result.re, c, left.im ] })
 
-				this.instructions.push({ code: 'vmulpd', ops: [ result.im, c, right.re ] });				
+				this.instructions.push({ code: 'vmulpd', ops: [ result.im, c, left.re ] });
 			}
 		}
-		else if (left.im === 0)
+		else if (right.im === 0)
 		{
 			// note: "* 1" and "* (-1)" are already handled in the ExpressionOptimizer
 			isSpecialCaseHandled = true;
 
-			if (left.re === 2)
+			if (right.re === 2)
 			{
-				this.instructions.push({ code: 'vaddpd', ops: [ result.re, right.re, right.re ] });
-				this.instructions.push({ code: 'vaddpd', ops: [ result.im, right.im, right.im ] });
+				this.instructions.push({ code: 'vaddpd', ops: [ result.re, left.re, left.re ] });
+				this.instructions.push({ code: 'vaddpd', ops: [ result.im, left.im, left.im ] });
 			}
-			else if (left.re === -2)
+			else if (right.re === -2)
 			{
 				var tmp1 = this.createRegister();
 				var tmp2 = this.createRegister();
@@ -173,18 +189,19 @@ CodeGenerator.prototype.multiply = function(left, right)
 				var tmp4 = this.createRegister();
 
 				this.instructions.push({ code: 'vxorpd', ops: [ tmp1, tmp1, tmp1 ] });
-				this.instructions.push({ code: 'vsubpd', ops: [ tmp2, tmp1, right.re ]});
-				this.instructions.push({ code: 'vsubpd', ops: [ result.re, tmp2, right.re ]});
+				this.instructions.push({ code: 'vsubpd', ops: [ tmp2, tmp1, left.re ]});
+				this.instructions.push({ code: 'vsubpd', ops: [ result.re, tmp2, left.re ]});
 
 				this.instructions.push({ code: 'vxorpd', ops: [ tmp3, tmp3, tmp3 ] });
-				this.instructions.push({ code: 'vsubpd', ops: [ tmp4, tmp3, right.im ]});
-				this.instructions.push({ code: 'vsubpd', ops: [ result.im, tmp4, right.im ]});
+				this.instructions.push({ code: 'vsubpd', ops: [ tmp4, tmp3, left.im ]});
+				this.instructions.push({ code: 'vsubpd', ops: [ result.im, tmp4, left.im ]});
 			}
 			else
 			{
-				var c = this.getConstant(left.re);
-				this.instructions.push({ code: 'vmulpd', ops: [ result.re, c, right.re ] });
-				this.instructions.push({ code: 'vmulpd', ops: [ result.im, c, right.im ] });				
+				var c = this.createRegister();
+				this.instructions.push({ code: 'vmovapd', ops: [ c, this.getConstant(right.re) ] });
+				this.instructions.push({ code: 'vmulpd', ops: [ result.re, left.re, c ] });
+				this.instructions.push({ code: 'vmulpd', ops: [ result.im, left.im, c ] });
 			}
 		}
 	}
@@ -193,8 +210,8 @@ CodeGenerator.prototype.multiply = function(left, right)
 	{
 		// generic case
 
-		if (isLeftNumber)
-			left = this.number(left, true, true);
+		if (isRightNumber)
+			right = this.number(right, true, true);
 
 		// result.re <- left.im * right.im
 		this.instructions.push({ code: 'vmulpd', ops: [ result.re, left.im, right.im ] });

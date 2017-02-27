@@ -11,12 +11,13 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 	// registers:
 
 	// - initialized by caller:
+	// https://en.wikipedia.org/wiki/X86_calling_conventions#x86-64_calling_conventions
 	// (Unix / Windows)
 	// %rdi / %rcx: pointer to constants
 	// %rsi / %rdx: pointer to results
 	// %rdx / %r8: width/4 (xmax)
 	// %rcx / %r9: height (ymax and y-counter)
-	// %r8: maxIter
+	// %r8 / stack: maxIter
 
 	// - internal usage:
 	// %rax: iteration count (counts down from maxIter to 0)
@@ -33,6 +34,16 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 	// 0x80: radius
 
 	/*
+	  ; Windows: move argument registers to the ones used by Unix:
+	  pop rax
+	  push rdi
+	  push rsi
+	  mov rdi,rcx
+	  mov rsi,rdx
+	  mov rdx,r8
+	  mov rcx,r9
+	  mov r8,rax
+
 	  ; save registers
 	  push rbx
 	  push r14
@@ -134,6 +145,8 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 		  pop r15
 		  pop r14
 		  pop rbx
+		  pop rsi ; Windows
+		  pop rdi ; Windows
 
 		  ret
 		*/
