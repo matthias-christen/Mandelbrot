@@ -30,6 +30,14 @@
 			var $canvas = undefined;
 			var ctx = undefined;
 
+			var geometry = {
+				xmin: -5,
+				ymin: -3,
+				xcenter: 0,
+				ycenter: 0,
+				h: 0
+			};
+
 			function clamp(x, min, max)
 			{
 				if (x < min)
@@ -68,12 +76,12 @@
 			{
 				app.executeCode(
 					{
-						xmin: -2.1,
-						ymin: -1.4,
-						xmax: 0.7,
-						ymax: 1.4,
-						dx: 2.8 / ctx.canvas.width,
-						dy: 2.8 / ctx.canvas.height,
+						xmin: geometry.xmin,
+						ymin: geometry.ymin,
+						xmax: geometry.xmin + geometry.h * ctx.canvas.width,
+						ymax: geometry.ymin + geometry.h * ctx.canvas.height,
+						dx: geometry.h,
+						dy: geometry.h,
 						radius: 2,
 						maxIter: 500
 					},
@@ -186,11 +194,20 @@
 				var $view = $('.view');
 				$canvas = $('#canvas');
 
+				var width = $view.width();
+				var height = $view.height();
+				var viewOffset = $view.offset();
+
 				ctx = $canvas[0].getContext("2d");
-				ctx.canvas.width = $view.width();
-				ctx.canvas.height = $view.height();
+				ctx.canvas.width = width;
+				ctx.canvas.height = height;
 
 				//test();
+
+				// set up the initial geometry
+				geometry.h = Math.max(2 * (geometry.xcenter - geometry.xmin) / width, 2 * (geometry.ycenter - geometry.ymin) / height);
+				geometry.xmin = geometry.xcenter - geometry.h * width * 0.5;
+				geometry.ymin = geometry.ycenter - geometry.h * height * 0.5;
 
 				$formula = $('.input-formula');
 				$formula.change(function()
@@ -208,6 +225,53 @@
 				});
 
 				$('.btn-compute').click(compute);
+
+				// zoom
+				document.addEventListener('mousewheel', function(event)
+				{
+					event.preventDefault();
+
+					var cx = event.clientX - viewOffset.left;
+					var cy = event.clientY - viewOffset.top;
+					var oldH = geometry.h;
+
+					geometry.h *= Math.pow(1.01, -event.deltaY);
+					geometry.xmin = geometry.xmin + cx * oldH - cx * geometry.h;
+					geometry.ymin = geometry.ymin + cy * oldH - cy * geometry.h;
+
+					compute();
+				});
+
+				var isMouseDown = false;
+				var startX = 0;
+				var startY = 0;
+				document.addEventListener('mousedown', function(event)
+				{
+					isMouseDown = true;
+					startX = event.clientX - viewOffset.left;
+					startY = event.clientY - viewOffset.top;
+				});
+
+				document.addEventListener('mousemove', function(event)
+				{
+					if (!isMouseDown)
+						return;
+
+					var x = event.clientX - viewOffset.left;
+					var y = event.clientY - viewOffset.top;
+
+					geometry.xmin += (startX - x) * geometry.h;
+					geometry.ymin += (startY - y) * geometry.h;
+					compute();
+
+					startX = x;
+					startY = y;
+				});
+
+				document.addEventListener('mouseup', function(event)
+				{
+					isMouseDown = false;
+				});
 
 				$(window).smartresize(function()
 				{
