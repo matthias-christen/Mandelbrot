@@ -27,12 +27,26 @@
 				registersCount: 16
 			};
 
+			var colorMap = [
+				{ at: 0, r: 0x00, g: 0x00, b: 0x00 },
+				{ at: 0.1, r: 0x06, g: 0x38, b: 0x7a },
+				{ at: 0.5, r: 0xe2, g: 0x66, b: 0xcc },
+				{ at: 0.7, r: 0xef, g: 0xee, b: 0x94 },
+				{ at: 0.8, r: 0x69, g: 0xef, b: 0xb7 },
+				{ at: 0.9, r: 0x72, g: 0xc2, b: 0xff }
+			];
+
 			var $canvas = undefined;
 			var ctx = undefined;
+			var ctxHidden = undefined;
 
+			var g_colors = undefined;
+
+			var defaultXmin = -5;
+			var defaultYmin = -3;
 			var geometry = {
-				xmin: -5,
-				ymin: -3,
+				xmin: defaultXmin,
+				ymin: defaultYmin,
 				xcenter: 0,
 				ycenter: 0,
 				h: 0
@@ -72,47 +86,127 @@
 				app.compileCode(assembler.code, codeGen.constants, cb);
 			}
 
-			function compute()
+			function createColorMap(maxIter)
 			{
-				app.executeCode(
+				g_colors = [];
+
+				var prevStop = colorMap[0];
+				var r = prevStop.r;
+				var g = prevStop.g;
+				var b = prevStop.b;
+
+				g_colors.push((b << 16) | (g << 8) | r);
+
+				var len = colorMap.length;
+				for (var i = 1; i < len; i++)
+				{
+					var curStop = colorMap[i];
+					var num = Math.ceil((curStop.at - prevStop.at) * (maxIter - 1));
+					var dr = (curStop.r - prevStop.r) / num;
+					var dg = (curStop.g - prevStop.g) / num;
+					var db = (curStop.b - prevStop.b) / num;
+
+					for (var j = 0; j < num; j++)
 					{
-						xmin: geometry.xmin,
-						ymin: geometry.ymin,
-						xmax: geometry.xmin + geometry.h * ctx.canvas.width,
-						ymax: geometry.ymin + geometry.h * ctx.canvas.height,
-						dx: geometry.h,
-						dy: geometry.h,
-						radius: 2,
-						maxIter: 500
-					},
-					function(width, height, result)
-					{
-						console.log(width + ' x ' + height);
+						r += dr;
+						g += dg;
+						b += db;
 
-						var imgData = ctx.createImageData(width, height);
-						var data = imgData.data;
-						var idx = 0;
-
-						for (var j = 0; j < height; j++)
-						{
-							for (var i = 0; i < width; i++)
-							{
-								var v = result.charCodeAt(2 * idx) + 128 * result.charCodeAt(2 * idx + 1);
-								var g = clamp((v - 256) * 8, 0, 255);
-								var k = idx * 4;
-
-								data[k] = g;
-								data[k + 1] = g;
-								data[k + 2] = clamp(v * 10, 0, 255);
-								data[k + 3] = 255;
-
-								++idx;
-							}
-						}
-						
-						ctx.putImageData(imgData, 0, 0);
+						g_colors.push(((b | 0) << 16) | ((g | 0) << 8) | (r | 0));
 					}
-				);
+
+					prevStop = curStop;
+				}
+
+				// color for the Mandelbrot set
+				g_colors.push(0);
+			}
+
+			function renderResult(x, y, width, height, result, histogram)
+			{
+				var imgData = ctxHidden.createImageData(width, height);
+				var data = imgData.data;
+				var idx = 0;
+
+				for (var j = 0; j < height; j++)
+				{
+					for (var i = 0; i < width; i++)
+					{
+						var c = g_colors[result.charCodeAt(2 * idx) + 128 * result.charCodeAt(2 * idx + 1)] || 0;
+
+						var k = idx * 4;
+						data[k] = c & 0xff;
+						data[k + 1] = (c >> 8) & 0xff;
+						data[k + 2] = c >> 16;
+						data[k + 3] = 255;
+
+						++idx;
+					}
+				}
+				
+				ctxHidden.putImageData(imgData, x, y);
+				ctx.drawImage(ctxHidden.canvas, 0, 0);
+			}
+
+			/**
+			 * Compute a rectangle of the Mandelbrot set in parallel.
+			 */
+			function compute(xmin, ymin, x, y, w, h, radius, maxIter, concurrency)
+			{
+				if (!concurrency)
+					concurrency = 1;
+
+				if (!maxIter)
+					maxIter = 500;
+
+				if (!g_colors || g_colors.length !== maxIter + 1)
+					createColorMap(maxIter);
+
+				// compute the number of chunks and the height of a chunk
+				var numChunks = Math.ceil(concurrency * (navigator.hardwareConcurrency || 1));
+				var chunkHeight = Math.ceil(h / numChunks);
+
+				// prevent that the chunk height gets too small
+				if (chunkHeight < 10)
+				{
+					chunkHeight = Math.min(h, 10);
+					numChunks = Math.ceil(h / chunkHeight);
+				}
+
+				var xmaxGlob = xmin + geometry.h * w;
+				var ymaxGlob = ymin + geometry.h * h;
+
+				console.log('Computing (' + xmin + ', ' + ymin + ') - (' + xmaxGlob + ', ' + ymaxGlob + ') => (' + x + ', ' + y + ') x (' + w + ', ' + h + ')');
+
+				// start the computations
+				for (var i = 0; i < numChunks; i++)
+				{
+					app.executeCode(
+						{
+							xmin: xmin,
+							ymin: ymin + geometry.h * i * chunkHeight,
+							xmax: xmaxGlob,
+							ymax: Math.min(ymaxGlob, ymin + geometry.h * (i + 1) * chunkHeight),
+							dx: geometry.h,
+							dy: geometry.h,
+							radius: radius || 2,
+							maxIter: maxIter
+						},
+						renderResult.bind(null, x, y + i * chunkHeight)
+					);
+				}
+			}
+
+			function reset()
+			{
+				var $view = $('.view');
+				var width = $view.width();
+				var height = $view.height();
+
+				// set up the default geometry
+				geometry.h = Math.max(2 * (geometry.xcenter - defaultXmin) / width, 2 * (geometry.ycenter - defaultYmin) / height);
+				geometry.xmin = geometry.xcenter - geometry.h * width * 0.5;
+				geometry.ymin = geometry.ycenter - geometry.h * height * 0.5;
 			}
 
 			function test()
@@ -198,86 +292,244 @@
 				var height = $view.height();
 				var viewOffset = $view.offset();
 
-				ctx = $canvas[0].getContext("2d");
+				ctx = $canvas[0].getContext('2d');
 				ctx.canvas.width = width;
 				ctx.canvas.height = height;
+				ctx.fillStyle = '#000000';
+
+				var canvasHidden = document.createElement('canvas');
+				ctxHidden = canvasHidden.getContext('2d');
+				ctxHidden.canvas.width = width;
+				ctxHidden.canvas.height = height;
 
 				//test();
 
 				// set up the initial geometry
-				geometry.h = Math.max(2 * (geometry.xcenter - geometry.xmin) / width, 2 * (geometry.ycenter - geometry.ymin) / height);
-				geometry.xmin = geometry.xcenter - geometry.h * width * 0.5;
-				geometry.ymin = geometry.ycenter - geometry.h * height * 0.5;
+				reset();
 
 				$formula = $('.input-formula');
+				$radius = $('.input-radius');
+				$maxIter = $('.input-maxiter');
+
+				// recompute the image if the formula has changed
 				$formula.change(function()
 				{
-					compile($formula.val(), compute);
-					/*
 					try
 					{
-						compile($formula.val(), compute);
+						compile(
+							$formula.val(),
+							function()
+							{
+								reset();
+								compute(
+									geometry.xmin, geometry.ymin,
+									0, 0, ctx.canvas.width, ctx.canvas.height,
+									parseFloat($radius.val()),
+									parseInt($maxIter.val(), 10)
+								);
+							}
+						);
 					}
 					catch (e)
 					{
 						// error message
-					}*/
+					}
 				});
 
-				$('.btn-compute').click(compute);
+				$('.btn-compute').click(function()
+				{
+					compute(
+						geometry.xmin, geometry.ymin,
+						0, 0, ctx.canvas.width, ctx.canvas.height,
+						parseFloat($radius.val()),
+						parseInt($maxIter.val(), 10)
+					);
+				});
+
+				$('.btn-reset').click(function()
+				{
+					reset();
+					compute(
+						geometry.xmin, geometry.ymin,
+						0, 0, ctx.canvas.width, ctx.canvas.height,
+						parseFloat($radius.val()),
+						parseInt($maxIter.val(), 10)
+					);
+				});
 
 				// zoom
+
+				var zoom = {
+					tid: null,
+					factor: 1
+				};
+
 				document.addEventListener('mousewheel', function(event)
 				{
 					event.preventDefault();
 
+					// get the center point
 					var cx = event.clientX - viewOffset.left;
 					var cy = event.clientY - viewOffset.top;
 					var oldH = geometry.h;
 
-					geometry.h *= Math.pow(1.01, -event.deltaY);
+					// compute the zoomed geometry
+					var factor = Math.pow(1.01, -event.deltaY);
+
+					geometry.h *= factor;
 					geometry.xmin = geometry.xmin + cx * oldH - cx * geometry.h;
 					geometry.ymin = geometry.ymin + cy * oldH - cy * geometry.h;
 
-					compute();
+					// compute the overall zoom factor for the pending recompute
+					zoom.factor *= factor;
+
+					var w = ctx.canvas.width;
+					var h = ctx.canvas.height;
+
+					// scale up/down the image to simulate the zoom (until the next recompute)
+					ctx.fillRect(0, 0, w, h);
+					ctx.drawImage(
+						ctxHidden.canvas,
+						cx * (1 - zoom.factor),
+						cy * (1 - zoom.factor),
+						w * zoom.factor,
+						h * zoom.factor,
+						0, 0, w, h
+					);
+
+					// recompute (debounced)
+					if (zoom.tid)
+						clearTimeout(zoom.tid);
+
+					zoom.tid = setTimeout(function()
+					{
+						ctxHidden.drawImage(ctx.canvas, 0, 0);
+						compute(
+							geometry.xmin, geometry.ymin,
+							0, 0, ctx.canvas.width, ctx.canvas.height,
+							parseFloat($radius.val()), parseInt($maxIter.val(), 10)
+						);
+
+						zoom.factor = 1;
+						zoom.tid = null;
+					}, 200);
 				});
 
-				var isMouseDown = false;
-				var startX = 0;
-				var startY = 0;
+				var move = {
+					isMouseDown: false,
+					offsetX: 0,
+					offsetY: 0,
+					startX: 0,
+					startY: 0,
+					xminOld: 0,
+					yminOld: 0,
+					tid: null
+				};
+
 				document.addEventListener('mousedown', function(event)
 				{
-					isMouseDown = true;
-					startX = event.clientX - viewOffset.left;
-					startY = event.clientY - viewOffset.top;
+					// save the current coordinates in case the image will be moved
+					move.isMouseDown = true;
+					move.startX = move.offsetX = event.clientX - viewOffset.left;
+					move.startY = move.offsetY = event.clientY - viewOffset.top;
+					move.xminOld = geometry.xmin;
+					move.yminOld = geometry.ymin;
 				});
 
 				document.addEventListener('mousemove', function(event)
 				{
-					if (!isMouseDown)
+					// nothing to do if we aren't moving the image
+					if (!move.isMouseDown)
 						return;
 
 					var x = event.clientX - viewOffset.left;
 					var y = event.clientY - viewOffset.top;
 
-					geometry.xmin += (startX - x) * geometry.h;
-					geometry.ymin += (startY - y) * geometry.h;
-					compute();
+					// compute the new (xmin, ymin) coordinates
+					geometry.xmin += (move.offsetX - x) * geometry.h;
+					geometry.ymin += (move.offsetY - y) * geometry.h;
 
-					startX = x;
-					startY = y;
+					// move the portion of the image we already have (no need to recompute)
+					ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+					ctx.drawImage(ctxHidden.canvas, x - move.startX, y - move.startY);
+
+					// compute the areas we haven't computed yet (debounced)
+					if (move.tid)
+						clearTimeout(move.tid);
+
+					move.tid = setTimeout(function()
+					{
+						var w = ctx.canvas.width;
+						var h = ctx.canvas.height;
+
+						var dx = x - move.startX;
+						var dy = y - move.startY;
+
+						// copy over the part of the image we already have
+						ctxHidden.drawImage(ctx.canvas, 0, 0);
+
+						var radius = parseFloat($radius.val());
+						var maxIter = parseInt($maxIter.val(), 10);
+
+						// compute the vertical missing strip
+						if (dx !== 0)
+						{
+							compute(
+								dx < 0 ? geometry.xmin + geometry.h * (w + dx) : geometry.xmin,
+								dy < 0 ? geometry.ymin : geometry.ymin + geometry.h * dy,
+								dx < 0 ? w + dx : 0,
+								dy < 0 ? 0 : dy,
+								Math.abs(dx),
+								h - Math.abs(dy),
+								radius, maxIter,
+								dy === 0 ? 1 : 0.5
+							);
+						}
+
+						// compute the horizontal missing strip
+						if (dy !== 0)
+						{
+							compute(
+								geometry.xmin,
+								dy < 0 ? geometry.ymin + geometry.h * (h + dy) : geometry.ymin,
+								0,
+								dy < 0 ? h + dy : 0,
+								w,
+								Math.abs(dy),
+								radius, maxIter,
+								dx === 0 ? 1 : 0.5
+							);
+						}
+
+						move.startX = x;
+						move.startY = y;
+						move.tid = null;
+					}, 200);
+
+					move.offsetX = x;
+					move.offsetY = y;
 				});
 
 				document.addEventListener('mouseup', function(event)
 				{
-					isMouseDown = false;
+					move.isMouseDown = false;
 				});
 
 				$(window).smartresize(function()
 				{
-					ctx.canvas.width = $view.width();
-					ctx.canvas.height = $view.height();
-					compute();
+					var w = $view.width();
+					var h = $view.height();
+
+					ctx.canvas.width = w;
+					ctx.canvas.height = h;
+					ctxHidden.canvas.width = w;
+					ctxHidden.canvas.height = h;
+
+					compute(
+						geometry.xmin, geometry.ymin,
+						0, 0, w, h,
+						parseFloat($radius.val()), parseInt($maxIter.val(), 10)
+					);
 				});
 			});
 		</script>
@@ -288,8 +540,9 @@
 		<div class="main-bar">
 			<input type="text" class="input-formula" placeholder="Formula">
 			<button class="btn-compute">Compute</button>
-			<input type="text" class="input-radius" placeholder="Escape Radius">
-			<input type="text" class="input-maxiter" placeholder="Maximum Iterations">
+			<button class="btn-reset">Reset</button>
+			<input type="text" class="input-radius" placeholder="Escape Radius" value="2">
+			<input type="text" class="input-maxiter" placeholder="Maximum Iterations" value="500">
 		</div>
 		<div class="view">
 			<canvas id="canvas"></canvas>

@@ -18,6 +18,7 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 	// %rdx / %r8: width/4 (xmax)
 	// %rcx / %r9: height (ymax and y-counter)
 	// %r8 / stack: maxIter
+	// %r9 / stack: histogram
 
 	// - internal usage:
 	// %rax: iteration count (counts down from maxIter to 0)
@@ -36,6 +37,7 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 	/*
 	  ; Windows: move argument registers to the ones used by Unix:
 	  pop rax
+	  pop r10
 	  push rdi
 	  push rsi
 	  mov rdi,rcx
@@ -43,6 +45,7 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 	  mov rdx,r8
 	  mov rcx,r9
 	  mov r8,rax
+	  mov r9,r10
 
 	  ; save registers
 	  push rbx
@@ -120,6 +123,23 @@ MandelbrotCodeGenerator.prototype.generate = function(expr)
 		  jnz NEXT_ITER
 
 		EXIT:
+		  ; update the histogram
+		  mov r14, r10
+		  and r14, 0xffff
+		  inc qword ptr [r9+8*r14] ; increment the histogram bin (in histogram[count])
+		  mov r14, r10
+		  shr r14, 16
+		  add [r9], r14
+		  inc qword ptr [r9+8*r14]
+		  mov r14, r10
+		  shr r14, 32
+		  and r14, 0xffff
+		  inc qword ptr [r9+8*r14]
+		  mov r14, r10
+		  shr r14, 48
+		  and r14, 0xffff
+		  inc qword ptr [r9+8*r14]
+
 		  ; convert the iteration count to base 128 (to be used in JavaScript strings)
 		  mov r14, r10
 		  shl r14, 1

@@ -1,32 +1,10 @@
-/*******************************************************************************
- * Copyright (c) 2015 Vanamco AG, http://www.vanamco.com
- *
- * The MIT License (MIT)
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * Contributors:
- * Matthias Christen, Vanamco AG
- *******************************************************************************/
-
 #include <sys/mman.h>
 #include <math.h>
 #include <algorithm>
+
+#ifndef OS_WIN
+#include <pthread.h>
+#endif
 
 #include "stdafx.h"
 #include "mandelbrot_strings.h"
@@ -38,16 +16,21 @@
 #define PAGE_SIZE 4096
 
 
-typedef void (*JIT_FUNC)(uint8_t*, uint8_t*, long, long, long);
+typedef void (*JIT_FUNC)(uint8_t*, uint8_t*, uint64_t, uint64_t, uint64_t, uint64_t*);
 
 
 class JIT
 {
 private:
     uint8_t* m_code;
+    
     uint8_t* m_constants0;
-    uint8_t* m_constants; // 32-byte aligned constants
+    
+    // 32-byte aligned constants
+    uint8_t* m_constants;
+    
     size_t m_codeSize;
+    
     int m_constantsCount;
     
 public:
@@ -184,19 +167,18 @@ public:
         mprotect(m_code, m_codeSize, PROT_READ | PROT_EXEC);
     }
 
-    uint8_t* ExecuteCode(Zephyros::JavaScript::Object options, long& width, long& height, long& size)
+    void ExecuteCode(
+        double xmin, double ymin, double xmax, double ymax,
+        double dx, double dy,
+        double radius, uint64_t maxIter,
+        uint64_t& width, uint64_t& height, uint64_t& size,
+        uint8_t** result, uint64_t** histogram)
     {
+        *result = NULL;
+        *histogram = NULL;
+
         if (!m_code || !m_constants0)
-            return NULL;
-        
-        double xmin = options->GetDouble(TEXT("xmin"));
-        double ymin = options->GetDouble(TEXT("ymin"));
-        double xmax = options->GetDouble(TEXT("xmax"));
-        double ymax = options->GetDouble(TEXT("ymax"));
-        double dx = options->GetDouble(TEXT("dx"));
-        double dy = options->GetDouble(TEXT("dy"));
-        double radius = options->GetDouble(TEXT("radius"));
-        long maxIter = options->GetInt(TEXT("maxIter"));
+            return;
         
         long width_4 = (((long) ceil((xmax - xmin) / dx)) + 3) >> 2;
         width = width_4 << 2;
@@ -208,6 +190,12 @@ public:
         SetConstant(3, (double) dy);
         SetConstant(4, (double) radius * radius);
         
+        // limit the range of maxIter to 14 bits
+        if (maxIter <= 0)
+            maxIter = 1;
+        if (maxIter >= 16384)
+            maxIter = 16383;
+
         /*
         int idx = 0;
         for (int i = 0; i < m_constantsCount; ++i)
@@ -222,26 +210,92 @@ public:
         }*/
         
         size = 2 * width * height;
-        uint8_t* result = new uint8_t[2*size];
+        *result = new uint8_t[size];
+        
+        // *histogram = new uint64_t[maxIter + 1];
+        // memset(*histogram, 0, (maxIter + 1) * sizeof(uint64_t));
+        
         //uint8_t* res = reinterpret_cast<uint8_t*>(((uint64_t) result + 31) & (~((uint64_t) 31)));
         // printf("result addr = %llx\n", (uint64_t) result);
         
         // run the jitted code
-        // RDI, RSI, RDX, RCX, R8
-        (reinterpret_cast<JIT_FUNC>(m_code))(m_constants, result, width_4, height, maxIter);
-        
+        // RDI, RSI, RDX, RCX, R8, R9
+        (reinterpret_cast<JIT_FUNC>(m_code))(m_constants, *result, width_4, height, maxIter, *histogram);
+
         /*
         double* out = (double*) res;
         printf("ymm0: %.10f, %.10f, %.10f, %.10f\n", out[0], out[1], out[2], out[3]);
         printf("ymm1: %.10f, %.10f, %.10f, %.10f\n", out[4], out[5], out[6], out[7]);
          */
-        
-        return result;
     }
 };
 
 JIT* g_jit = new JIT();
 
+typedef struct
+{
+    CallbackId callback;
+    double xmin;
+    double ymin;
+    double xmax;
+    double ymax;
+    double dx;
+    double dy;
+    double radius;
+    uint64_t maxIter;
+} execute_code_t;
+
+void* ExecuteCode(void* args)
+{
+    execute_code_t* arguments = (execute_code_t*) args;
+    uint64_t width = 0;
+    uint64_t height = 0;
+    uint64_t size = 0;
+    uint8_t* result;
+    uint64_t* histogram;
+    
+    // invoke the JITted function
+    g_jit->ExecuteCode(
+        arguments->xmin, arguments->ymin, arguments->xmax, arguments->ymax,
+        arguments->dx, arguments->dy,
+        arguments->radius, arguments->maxIter,
+        width, height, size,
+        &result, &histogram
+    );
+    
+    // prepare the return values
+    Zephyros::JavaScript::Array ret = Zephyros::JavaScript::CreateArray();
+    ret->SetInt(0, width);
+    ret->SetInt(1, height);
+    
+    if (result)
+    {
+        ret->SetString(2, String((char*) result, size));
+        delete[] result;
+    }
+    else
+        ret->SetNull(2);
+    
+    if (histogram)
+    {
+        Zephyros::JavaScript::Array histogramArray = Zephyros::JavaScript::CreateArray();
+        
+        for (int i = 0; i <= arguments->maxIter; ++i)
+            histogramArray->SetDouble(i, histogram[i]);
+
+        ret->SetList(3, histogramArray);
+        delete[] histogram;
+    }
+    else
+        ret->SetNull(3);
+    
+    // call the callback with the return values
+    Zephyros::GetNativeExtensions()->GetClientExtensionHandler()->InvokeCallback(arguments->callback, ret);
+
+    delete arguments;
+    pthread_exit(NULL);
+    return NULL;
+}
 
 class MandelbrotNativeExtensions : public Zephyros::DefaultNativeExtensions
 {
@@ -263,24 +317,22 @@ class MandelbrotNativeExtensions : public Zephyros::DefaultNativeExtensions
 	    extensionHandler->AddNativeJavaScriptFunction(
 	        TEXT("executeCode"),
 	        FUNC({
-                long width = 0;
-                long height = 0;
-                long size = 0;
+                pthread_t thd;
+                execute_code_t* arguments = new execute_code_t;
+                arguments->callback = callback;
             
-                uint8_t* result = g_jit->ExecuteCode(args->GetDictionary(0), width, height, size);
-            
-                ret->SetInt(0, width);
-                ret->SetInt(1, height);
+                Zephyros::JavaScript::Object options = args->GetDictionary(0);
+                arguments->xmin = options->GetDouble(TEXT("xmin"));
+                arguments->ymin = options->GetDouble(TEXT("ymin"));
+                arguments->xmax = options->GetDouble(TEXT("xmax"));
+                arguments->ymax = options->GetDouble(TEXT("ymax"));
+                arguments->dx = options->GetDouble(TEXT("dx"));
+                arguments->dy = options->GetDouble(TEXT("dy"));
+                arguments->radius = options->GetDouble(TEXT("radius"));
+                arguments->maxIter = options->GetInt(TEXT("maxIter"));
+                pthread_create(&thd, NULL, ExecuteCode, (void*) arguments);
 
-                if (result)
-                {
-                    ret->SetString(2, String((char*) result, size));
-                    delete[] result;
-                }
-                else
-                    ret->SetNull(2);
-
-	            return NO_ERROR;
+	            return RET_DELAYED_CALLBACK;
 	        }
             ARG(VTYPE_DICTIONARY, "options")
 	    ));
@@ -304,5 +356,8 @@ int MAIN(MAIN_ARGS)
     Zephyros::SetOSXInfo(TEXT("Localizable"));
 #endif
 
-	return Zephyros::Run(RUN_APPLICATION_ARGS, TEXT("Mandelbrot"), TEXT("1.0.0"), TEXT("app/index.html"));
+	int ret = Zephyros::Run(RUN_APPLICATION_ARGS, TEXT("Mandelbrot"), TEXT("1.0.0"), TEXT("app/index.html"));
+    delete g_jit;
+    
+    return ret;
 }

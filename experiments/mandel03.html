@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Mandelbrot Set; Distance Estimation Coloring</title>
+	</head>
+	<body>
+		<canvas id="c"></canvas>
+		<script>
+			var width = 600;
+			var height = 600;
+			var maxIter = 100;
+
+			var xmin = -2.1;
+			var xmax = 0.7;
+			var ymin = -1.4;
+			var ymax = 1.4;
+
+			var colorMap = [
+				{ at: 0, r: 0xff, g: 0xff, b: 0xff },
+				{ at: 0.5, r: 0x72, g: 0xc2, b: 0xff },
+				{ at: 0.6, r: 0xe2, g: 0x66, b: 0xcc },
+				{ at: 0.7, r: 0xef, g: 0xee, b: 0x94 },
+				{ at: 0.8, r: 0x69, g: 0xef, b: 0xb7 },
+				{ at: 0.9, r: 0x06, g: 0x38, b: 0x7a },
+				{ at: 1, r: 0x00, g: 0x00, b: 0x00 }
+			];
+
+
+			function getColor(q)
+			{
+				if (q === 0)
+					return colorMap[0];
+
+				var len = colorMap.length;
+				var prevStop = colorMap[0]
+
+				for (var i = 1; i < len; i++)
+				{
+					var stop = colorMap[i];
+					if (stop.at === q)
+						return stop;
+					if (stop.at > q)
+					{
+						var f = (q - prevStop.at) / (stop.at - prevStop.at);
+						return {
+							r: (1 - f) * prevStop.r + f * stop.r,
+							g: (1 - f) * prevStop.g + f * stop.g,
+							b: (1 - f) * prevStop.b + f * stop.b
+						};
+					}
+
+					prevStop = stop;
+				}
+
+				return colorMap[len - 1];
+			}
+
+			var canvas = document.getElementById('c');
+			var ctx = canvas.getContext('2d');
+			ctx.canvas.width = width;
+			ctx.canvas.height = height;
+
+			var imgData = ctx.createImageData(width, height);
+			var data = imgData.data;
+
+			var idx = 0;
+			var dx = (xmax - xmin) / width;
+			var dy = (ymax - ymin) / height;
+
+			for (var j = 0; j < height; j++)
+			{
+				for (var i = 0; i < width; i++)
+				{
+					var cx = xmin + i * dx;
+					var cy = ymin + j * dy;
+					var zx = 0;
+					var zy = 0;
+					var dzx = 1;
+					var dzy = 0;
+					var n = 0;
+
+					for (var k = 0; k < maxIter; k++)
+					{
+						var zy2 = zy * zy;
+						var zx2 = zx * zx;
+
+						// dz' = 2 * z * dz + 1
+						var tmp = dzx;
+						dzx = 2 * (zx * dzx - zy * dzy) + 1;
+						dzy = 2 * (zy * tmp + zx * dzy);
+						
+						// z' = z^2 + c
+						zy = 2 * zx * zy + cy;
+						zx = zx2 - zy2 + cx;
+
+						if (zx2 + zy2 >= 100)
+							break;
+
+						++n;
+					}
+
+					// distance = |z| * log(|z|) / |dz|
+					var absZ = Math.sqrt(zx * zx + zy * zy);
+
+					//var c = getColor(absZ * Math.log(absZ) / Math.sqrt(dzx * dzx + dzy * dzy));
+
+					//var c = getColor(n >= maxIter ? maxIter : absZ * Math.log(absZ) / Math.sqrt(dzx * dzx + dzy * dzy));
+
+					var c = getColor(n / maxIter + absZ * Math.log(absZ) / Math.sqrt(dzx * dzx + dzy * dzy));
+
+
+					var p = idx * 4;
+					data[p] = c.r;
+					data[p + 1] = c.g;
+					data[p + 2] = c.b;
+					data[p + 3] = 255;
+
+					++idx;
+				}
+			}
+
+			ctx.putImageData(imgData, 0, 0);
+		</script>
+	</body>
+</html>

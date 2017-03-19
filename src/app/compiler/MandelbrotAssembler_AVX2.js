@@ -11,12 +11,14 @@ MandelbrotAssembler.prototype.run = function()
     // registers:
 
     // - initialized by caller:
+    // (https://en.wikipedia.org/wiki/X86_calling_conventions#x86-64_calling_conventions)
     // (Unix / Windows)
     // %rdi / %rcx: pointer to constants
     // %rsi / %rdx: pointer to results
     // %rdx / %r8: width/4 (xmax)
     // %rcx / %r9: height (ymax and y-counter)
     // %r8: maxIter
+    // %r9: histogram
 
     // - internal usage:
     // %rax: iteration count (counts down from maxIter to 0)
@@ -40,13 +42,15 @@ MandelbrotAssembler.prototype.run = function()
     {
         this.code.push(
             0x58,                     // pop    rax
+            0x41, 0x5a,               // pop    r10
             0x57,                     // push   rdi
             0x56,                     // push   rsi
             0x48, 0x89, 0xcf,         // mov    rdi,rcx
             0x48, 0x89, 0xd6,         // mov    rsi,rdx
             0x4c, 0x89, 0xc2,         // mov    rdx,r8
             0x4c, 0x89, 0xc9,         // mov    rcx,r9
-            0x49, 0x89, 0xc0          // mov    r8,rax
+            0x49, 0x89, 0xc0,         // mov    r8,rax
+            0x4d, 0x89, 0xd1          // mov    r9,r10
         );
     }
 
@@ -108,6 +112,28 @@ MandelbrotAssembler.prototype.run = function()
 
     this.addLabel('EXIT');
     this.code.push(
+        /*
+        // update the histogram
+        0x4d, 0x89, 0xd6,             // mov    r14,r10
+                                      // and    r14,0xffff
+        0x49, 0x81, 0xe6, 0xff, 0xff, 0x00, 0x00,    
+        0x4b, 0xff, 0x04, 0xf1,       // inc    QWORD PTR [r9+r14*8]
+        0x4d, 0x89, 0xd6,             // mov    r14,r10
+        0x49, 0xc1, 0xee, 0x10,       // shr    r14,0x10
+                                      // and    r14,0xffff
+        0x49, 0x81, 0xe6, 0xff, 0xff, 0x00, 0x00,    
+        0x4b, 0xff, 0x04, 0xf1,       // inc    QWORD PTR [r9+r14*8]
+        0x4d, 0x89, 0xd6,             // mov    r14,r10
+        0x49, 0xc1, 0xee, 0x20,       // shr    r14,0x20
+        0x49, 0x81, 0xe6, 0xff, 0xff, 0x00, 0x00,
+        0x4b, 0xff, 0x04, 0xf1,       // inc    QWORD PTR [r9+r14*8]
+        0x4d, 0x89, 0xd6,             // mov    r14,r10
+        0x49, 0xc1, 0xee, 0x30,       // shr    r14,0x30
+        0x49, 0x81, 0xe6, 0xff, 0xff, 0x00, 0x00,
+        0x4b, 0xff, 0x04, 0xf1,       // inc    QWORD PTR [r9+r14*8]
+        */
+
+        // convert the iteration count to base 128 (to be used in JavaScript strings)
         0x4d, 0x89, 0xd6,             // mov    r14,r10
         0x49, 0xd1, 0xe6,             // shl    r14,1
                                       // movabs rbx,0x7f007f007f007f
