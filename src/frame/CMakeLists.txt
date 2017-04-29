@@ -52,8 +52,11 @@ APPEND_PLATFORM_SOURCES(APP_SRCS)
 
 # app resources
 set(APP_RESOURCES)
+set(APP_ICON_MACOSX
+  res/mac/icon.icns
+)
 set(APP_RESOURCES_MACOSX
-#  res/mac/Images.xcassets
+  ${APP_ICON_MACOSX}
   ${WEBAPP_DIR}
 )
 set(APP_RESOURCES_WINDOWS
@@ -126,6 +129,8 @@ endif()
 if(OS_WINDOWS)
   option(USE_WINSPARKLE "Use the WinSparkle updater" ON)
   option(USE_CRASHRPT "Use the CrashRpt crash reporter" ON)
+  set(CUSTOM_ARCH "x64" CACHE STRING "Architecture Win: 32 or 64")
+  set_property(CACHE CUSTOM_ARCH PROPERTY STRINGS "Win32;x64")
 endif()
 
 
@@ -183,6 +188,20 @@ SET_CEF_TARGET_OUT_DIR()
 
 # configure the executables
 if(OS_MACOSX)
+  # Target SDK
+  set(CEF_TARGET_SDK "10.7")
+  set(CEF_COMPILER_FLAGS "${CEF_COMPILER_FLAGS} -mmacosx-version-min=${CEF_TARGET_SDK}")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET ${CEF_TARGET_SDK})
+
+  # Icon
+  # add property to info.plist
+  get_filename_component(APP_ICON_FILENAME "${APP_ICON_MACOSX}" NAME)
+  set(MACOSX_BUNDLE_ICON_FILE "${APP_ICON_FILENAME}")
+  # this part tells CMake where to find and install the file itself
+  set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES
+    MACOSX_PACKAGE_LOCATION "Resources"
+  )
+
   # CEF version
   if(${BUILD_CEF_VERSION})
     # CEF Helper App
@@ -200,6 +219,7 @@ if(OS_MACOSX)
     target_link_libraries(${APP_NAME_CEFHELPER} PRIVATE ${LIB_APPKIT} ${LIB_ZEPHYROS_CEFHELPER} ${LIB_CEF})
     set_target_properties(${APP_NAME_CEFHELPER} PROPERTIES
       MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/${APP_CEFHELPER_PLIST}"
+      XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@loader_path/../../../../Frameworks @loader_path/../Frameworks @loader_path/../../../../Frameworks/Zephyros_CEF.framework/Versions/A/Frameworks"
     )
     EMBED_FRAMEWORK("${APP_NAME_CEFHELPER}" "${LIB_ZEPHYROS_CEFHELPER_PATH}")
     FIX_MACOSX_FRAMEWORK_LINK("${APP_NAME_CEFHELPER}" "${CEF_TARGET_OUT_DIR}")
@@ -222,6 +242,7 @@ if(OS_MACOSX)
     set_target_properties(${APP_NAME_CEF} PROPERTIES
       RESOURCE "${APP_RESOURCES}"
       MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/${APP_CEF_PLIST}"
+      XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@loader_path/../Frameworks @loader_path/../Frameworks/Zephyros_CEF.framework/Versions/A/Frameworks"
     )
     EMBED_FRAMEWORK("${APP_NAME_CEF}" "${LIB_ZEPHYROS_CEF_PATH}")
     EMBED_FRAMEWORK("${APP_NAME_CEF}" "${LIB_CEF}")
@@ -250,6 +271,7 @@ if(OS_MACOSX)
     set_target_properties(${APP_NAME_WEBVIEW} PROPERTIES
       RESOURCE "${APP_RESOURCES}"
       MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/${APP_WEBVIEW_PLIST}"
+      XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@loader_path/../Frameworks @loader_path/../Frameworks/Zephyros_WebView.framework/Versions/A/Frameworks"
     )
     EMBED_FRAMEWORK("${APP_NAME_WEBVIEW}" "${LIB_ZEPHYROS_WEBVIEW_PATH}")
 
@@ -275,6 +297,7 @@ if(OS_MACOSX)
     set_target_properties(${APP_NAME_APPSTORE} PROPERTIES
       RESOURCE "${APP_RESOURCES}"
       MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/${APP_APPSTORE_PLIST}"
+      XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@loader_path/../Frameworks @loader_path/../Frameworks/Zephyros_AppStore.framework/Versions/A/Frameworks"
     )
     EMBED_FRAMEWORK("${APP_NAME_APPSTORE}" "${LIB_ZEPHYROS_APPSTORE_PATH}")
 
@@ -327,9 +350,21 @@ elseif(OS_WINDOWS)
     uxtheme.lib
   )
 
+  # set solution build directory
+  # TODO: use CMake variables for ../../../bin
+  set(WINDOWS_OUT_DIR ../../../bin/${CUSTOM_ARCH}/Release)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${WINDOWS_OUT_DIR}")
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${WINDOWS_OUT_DIR}")
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${WINDOWS_OUT_DIR}")
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${WINDOWS_OUT_DIR}")
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${WINDOWS_OUT_DIR}")
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${WINDOWS_OUT_DIR}")
+  #set(EXECUTABLE_OUTPUT_PATH ${WINDOWS_OUT_DIR})
+  #set(LIBRARY_OUTPUT_PATH ${WINDOWS_OUT_DIR})
+
   if(USE_WINSPARKLE)
     set(CEF_STANDARD_LIBS ${CEF_STANDARD_LIBS} "${ZEPHYROS_DIR}/lib/winsparkle/\$(Platform)/WinSparkle.lib")
-    COPY_FILES(${APP_NAME} "${WINSPARKLE_BINARY_FILES}" "${ZEPHYROS_DIR}/lib/winsparkle/x64" "${CEF_TARGET_OUT_DIR}")
+    COPY_FILES(${APP_NAME} "${WINSPARKLE_BINARY_FILES}" "${ZEPHYROS_DIR}/lib/winsparkle/${CUSTOM_ARCH}" "${WINDOWS_OUT_DIR}")
   else()
     set(APP_ALL_SRCS ${APP_ALL_SRCS} "${ZEPHYROS_DIR}/src/stubs_win.cpp")
     target_compile_definitions(${APP_NAME} PRIVATE -DNO_WINSPARKLE)
@@ -337,14 +372,14 @@ elseif(OS_WINDOWS)
 
   if(USE_CRASHRPT)
     set(CEF_STANDARD_LIBS ${CEF_STANDARD_LIBS} "${ZEPHYROS_DIR}/lib/CrashRpt/\$(Platform)/CrashRpt1402.lib")
-    COPY_FILES(${APP_NAME} "${CRASHREPORTER_BINARY_FILES}" "${ZEPHYROS_DIR}/lib/CrashRpt/x64" "${CEF_TARGET_OUT_DIR}")
+    COPY_FILES(${APP_NAME} "${CRASHREPORTER_BINARY_FILES}" "${ZEPHYROS_DIR}/lib/CrashRpt/${CUSTOM_ARCH}" "${WINDOWS_OUT_DIR}")
   else()
     set(APP_ALL_SRCS ${APP_ALL_SRCS} "${ZEPHYROS_DIR}/src/stubs_win.cpp")
     target_compile_definitions(${APP_NAME} PRIVATE -DNO_CRASHRPT)
   endif()
 
-  set(CEF_RESOURCE_DIR "${ZEPHYROS_DIR}/lib/cef/DLL/libcef/windows/x64/Resources/")
-  set(CEF_BINARY_DIR "${ZEPHYROS_DIR}/lib/cef/DLL/libcef/windows/x64/Release/")
+  set(CEF_RESOURCE_DIR "${ZEPHYROS_DIR}/lib/cef/DLL/libcef/windows/${CUSTOM_ARCH}/Resources/")
+  set(CEF_BINARY_DIR "${ZEPHYROS_DIR}/lib/cef/DLL/libcef/windows/${CUSTOM_ARCH}/Release/")
 
   target_compile_definitions(${APP_NAME} PRIVATE -DUSE_CEF ${PLATFORM})
   target_link_libraries(${APP_NAME} PRIVATE ${LIB_ZEPHYROS_CEF} ${LIB_DLL_WRAPPER} ${CEF_BINARY_DIR}/libcef.lib ${CEF_STANDARD_LIBS})
@@ -361,9 +396,8 @@ elseif(OS_WINDOWS)
   )
 
   # copy CEF binary and resource files to the target output directory
-  COPY_FILES(${APP_NAME} "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
-  COPY_FILES(${APP_NAME} "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
-
+  COPY_FILES(${APP_NAME} "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${WINDOWS_OUT_DIR}")
+  COPY_FILES(${APP_NAME} "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${WINDOWS_OUT_DIR}")
 elseif(OS_LINUX)
   enable_language(ASM-ATT)
 

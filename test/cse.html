@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../src/app/compiler/Parser.js"></script>
+		<script src="../src/app/compiler/Complex.js"></script>
+		<script src="../src/app/compiler/Generator.js"></script>
+		<script src="../src/app/compiler/ExpressionOptimizer.js"></script>
+		<script src="../src/app/compiler/DerivativeCalculator.js"></script>
+		<script src="../src/app/compiler/CommonSubexpressionEliminator.js"></script>
+		<script src="../src/app/compiler/CodeGenerator_AVX2.js"></script>
+		<script src="../src/app/compiler/MandelbrotCodeGenerator_AVX2.js"></script>
+		<script src="../src/app/compiler/CodeGenerator_Arithmetic_AVX2.js"></script>
+		<script src="../src/app/compiler/CodeGenerator_RealFunctions_AVX2.js"></script>
+		<script src="../src/app/compiler/CodeGenerator_Functions_AVX2.js"></script>
+		<script src="../src/app/compiler/Graph.js"></script>
+		<script src="../src/app/compiler/GraphColoringGreedy.js"></script>
+		<script src="../src/app/compiler/LiveAnalysis.js"></script>
+		<script src="../src/app/compiler/RegisterAllocator.js"></script>
+		<script src="../src/app/compiler/Assembler_AVX2.js"></script>
+		<script src="../src/app/compiler/MandelbrotAssembler_AVX2.js"></script>
+		<script src="../src/app/compiler/FormulaGenerator.js"></script>
+
+		<script>
+			var f = 'z^2 + 2*z + c';
+			//var f = 'z^2 + 2*z + c + exp(z)';
+			//f = 'c+exp(z)';
+			//f = 'sin(z) + c*cos(z)';
+
+			var expr = Parser.parse(f);
+			var derivative = new DerivativeCalculator(expr).generate();
+
+			var ast = {
+				type: 'assignmentList',
+				list: [
+					{
+						type: 'assignment',
+						target: { type: 'variable', name: 'znew', re: 'xnew', im: 'ynew' },
+						expr: new ExpressionOptimizer(expr).generate()
+					},
+					{
+						type: 'assignment',
+						target: { type: 'variable', name: 'dznew', re: 'dxnew', im: 'dynew' },
+						expr: new ExpressionOptimizer(derivative).generate()
+					}
+				]
+			};
+
+			var cseAst = new CommonSubexpressionEliminator(ast).run();
+			console.log(cseAst);
+			for (var i = 0; i < cseAst.list.length; i++)
+				console.log(new FormulaGenerator(cseAst.list[i]).generate())
+
+			var codeGen = new MandelbrotCodeGenerator(cseAst);
+			codeGen.generate();
+
+			console.log(codeGen.toString());
+
+			var architecture = {
+				registersCount: 16
+			};
+
+			allocateRegisters(
+				codeGen.instructions,
+				architecture,
+				4 /* 4 registers for zRe, zIm, cRe, cIm */
+			);
+
+			console.log(codeGen.toString());
+		</script>
+	</head>
+	<body>
+	</body>
+</html>

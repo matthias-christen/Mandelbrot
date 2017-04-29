@@ -16,7 +16,7 @@
 #define PAGE_SIZE 4096
 
 
-typedef void (*JIT_FUNC)(uint8_t*, uint8_t*, uint64_t, uint64_t, uint64_t, uint64_t*);
+typedef void (*JIT_FUNC)(uint8_t*, uint8_t*, uint64_t, uint64_t, uint64_t, uint64_t*, double*, double*);
 
 
 class JIT
@@ -172,10 +172,16 @@ public:
         double dx, double dy,
         double radius, uint64_t maxIter,
         uint64_t& width, uint64_t& height, uint64_t& size,
-        uint8_t** result, uint64_t** histogram)
+        uint8_t** result, uint64_t** histogram, double** zn, double** dzn)
     {
         *result = NULL;
-        *histogram = NULL;
+        
+        if (histogram)
+            *histogram = NULL;
+        if (zn)
+            *zn = NULL;
+        if (dzn)
+            *dzn = NULL;
 
         if (!m_code || !m_constants0)
             return;
@@ -209,18 +215,29 @@ public:
             printf("\n");
         }*/
         
-        size = 2 * width * height;
-        *result = new uint8_t[size];
+        size = width * height;
+        *result = new uint8_t[2 * size];
         
-        // *histogram = new uint64_t[maxIter + 1];
-        // memset(*histogram, 0, (maxIter + 1) * sizeof(uint64_t));
+        if (histogram)
+        {
+            *histogram = new uint64_t[maxIter + 1];
+            memset(*histogram, 0, (maxIter + 1) * sizeof(uint64_t));
+        }
+        
+        if (zn)
+            *zn = new double[size];
+        if (dzn)
+            *dzn = new double[size];
         
         //uint8_t* res = reinterpret_cast<uint8_t*>(((uint64_t) result + 31) & (~((uint64_t) 31)));
         // printf("result addr = %llx\n", (uint64_t) result);
-        
+
         // run the jitted code
         // RDI, RSI, RDX, RCX, R8, R9
-        (reinterpret_cast<JIT_FUNC>(m_code))(m_constants, *result, width_4, height, maxIter, *histogram);
+        (reinterpret_cast<JIT_FUNC>(m_code))(
+            m_constants, *result, width_4, height, maxIter,
+            histogram ? *histogram : NULL, zn ? *zn : NULL, dzn ? *dzn : NULL
+        );
 
         /*
         double* out = (double*) res;
@@ -243,6 +260,9 @@ typedef struct
     double dy;
     double radius;
     uint64_t maxIter;
+    bool computeZn;
+    bool computeDzn;
+    bool computeHistogram;
 } execute_code_t;
 
 void* ExecuteCode(void* args)
@@ -251,8 +271,10 @@ void* ExecuteCode(void* args)
     uint64_t width = 0;
     uint64_t height = 0;
     uint64_t size = 0;
-    uint8_t* result;
-    uint64_t* histogram;
+    uint8_t* result = NULL;
+    uint64_t* histogram = NULL;
+    double* zn = NULL;
+    double* dzn = NULL;
     
     // invoke the JITted function
     g_jit->ExecuteCode(
@@ -260,7 +282,10 @@ void* ExecuteCode(void* args)
         arguments->dx, arguments->dy,
         arguments->radius, arguments->maxIter,
         width, height, size,
-        &result, &histogram
+        &result,
+        arguments->computeHistogram ? &histogram : NULL,
+        arguments->computeZn ? &zn : NULL,
+        arguments->computeDzn ? &dzn : NULL
     );
     
     // prepare the return values
@@ -270,11 +295,37 @@ void* ExecuteCode(void* args)
     
     if (result)
     {
-        ret->SetString(2, String((char*) result, size));
+        ret->SetString(2, String((char*) result, 2 * size));
         delete[] result;
     }
     else
         ret->SetNull(2);
+    
+    if (zn)
+    {
+        Zephyros::JavaScript::Array znArray = Zephyros::JavaScript::CreateArray();
+        
+        for (int i = 0; i <= size; ++i)
+            znArray->SetDouble(i, zn[i]);
+        
+        ret->SetList(3, znArray);
+        delete[] zn;
+    }
+    else
+        ret->SetNull(3);
+    
+    if (dzn)
+    {
+        Zephyros::JavaScript::Array dznArray = Zephyros::JavaScript::CreateArray();
+        
+        for (int i = 0; i <= size; ++i)
+            dznArray->SetDouble(i, dzn[i]);
+        
+        ret->SetList(4, dznArray);
+        delete[] dzn;
+    }
+    else
+        ret->SetNull(4);
     
     if (histogram)
     {
@@ -282,12 +333,12 @@ void* ExecuteCode(void* args)
         
         for (int i = 0; i <= arguments->maxIter; ++i)
             histogramArray->SetDouble(i, histogram[i]);
-
-        ret->SetList(3, histogramArray);
+        
+        ret->SetList(5, histogramArray);
         delete[] histogram;
     }
     else
-        ret->SetNull(3);
+        ret->SetNull(5);
     
     // call the callback with the return values
     Zephyros::GetNativeExtensions()->GetClientExtensionHandler()->InvokeCallback(arguments->callback, ret);
@@ -330,6 +381,10 @@ class MandelbrotNativeExtensions : public Zephyros::DefaultNativeExtensions
                 arguments->dy = options->GetDouble(TEXT("dy"));
                 arguments->radius = options->GetDouble(TEXT("radius"));
                 arguments->maxIter = options->GetInt(TEXT("maxIter"));
+                arguments->computeZn = options->HasKey(TEXT("computeZn")) && options->GetBool(TEXT("computeZn"));
+                arguments->computeDzn = options->HasKey(TEXT("computeDzn")) && options->GetBool(TEXT("computeDzn"));
+                arguments->computeHistogram = options->HasKey(TEXT("computeHistogram")) && options->GetBool(TEXT("computeHistogram"));
+
                 pthread_create(&thd, NULL, ExecuteCode, (void*) arguments);
 
 	            return RET_DELAYED_CALLBACK;

@@ -164,7 +164,7 @@ ExpressionOptimizer.prototype.binaryExpression = function(expr)
 					type: 'binaryExpression',
 					op: '^int',
 					left: left,
-					right: { re: Math.abs(right.re), im: 0 }
+					right: { type: 'number', re: Math.abs(right.re), im: 0 }
 				};
 
 				return right.re > 0 ?

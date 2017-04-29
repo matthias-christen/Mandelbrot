@@ -1,6 +1,8 @@
-function CodeGenerator(expr)
+function CodeGenerator(expr, options)
 {
 	this.expr = expr;
+	this.options = options;
+
 	this.instructions = [];
 
 	this.currentRegIdx = 0;
@@ -16,10 +18,17 @@ function CodeGenerator(expr)
 	this.constRadius = this.getConstant();
 
 	this.variables = {
+		// z = x + iy
 		x: this.createRegister(),
 		y: this.createRegister(),
+
+		// c = u + iv
 		u: this.createRegister(),
-		v: this.createRegister()
+		v: this.createRegister(),
+
+		// dz = dx + idy
+		dx: this.createRegister(),
+		dy: this.createRegister()
 	};
 }
 
@@ -186,6 +195,23 @@ CodeGenerator.prototype.variable = function(expr)
 		re: this.variables[expr.re],
 		im: this.variables[expr.im]
 	};
+};
+
+CodeGenerator.prototype.assignmentList = function(assignments)
+{
+	var len = assignments.list.length;
+	for (var i = 0; i < len; i++)
+		this.generate(assignments.list[i]);
+};
+
+CodeGenerator.prototype.assignment = function(expr)
+{
+	var value = this.generate(expr.expr);
+
+	this.variables[expr.target.re] = value.re;
+	this.variables[expr.target.im] = value.im;
+
+	return value;
 };
 
 CodeGenerator.prototype.unaryExpression = function(expr)

@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../src/app/compiler/Parser.js"></script>
+		<script src="../src/app/compiler/Generator.js"></script>
+		<script src="../src/app/compiler/DerivativeCalculator.js"></script>
+		<script src="../src/app/compiler/ExpressionOptimizer.js"></script>
+		<script src="../src/app/compiler/FormulaGenerator.js"></script>
+		<script>
+			/*
+			var f = 'sin(z)*c+cos(z^2)';
+
+			var expr = Parser.parse(f);
+			var derivative = new DerivativeCalculator(expr).generate();
+			var opt = new ExpressionOptimizer(derivative).generate();
+
+			console.log(f);
+			console.log(opt);
+			console.log(new FormulaGenerator(opt).generate());
+			*/
+		</script>
+	</head>
+	<body>
+		<input type="text" id="formula">
+		<button id="compute">Compute Derivative</button>
+		<div id="result"></div>
+		<script>
+			var formula = document.getElementById('formula');
+			var result = document.getElementById('result');
+
+			document.getElementById('compute').addEventListener('click', function()
+			{
+				var expr = Parser.parse(formula.value);
+				var derivative = new DerivativeCalculator(expr).generate();
+				result.innerHTML = new FormulaGenerator(new ExpressionOptimizer(derivative).generate()).generate();
+			});
+		</script>
+	</body>
+</html>
