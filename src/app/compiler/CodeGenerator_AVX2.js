@@ -240,7 +240,7 @@ CodeGenerator.prototype.unaryExpression = function(expr)
 CodeGenerator.prototype.generateIfNotNumber = function(expr)
 {
 	return expr.type === 'number' ? expr : this.generate(expr);
-}
+};
 
 CodeGenerator.prototype.binaryExpression = function(expr)
 {
@@ -272,6 +272,35 @@ CodeGenerator.prototype.binaryExpression = function(expr)
 	}
 };
 
+CodeGenerator.prototype.ifZeroExpression = function(expr)
+{
+	var zero = this.createRegister();
+    this.instructions.push({ code: 'vxorpd', ops: [ zero, zero, zero ] });
+
+	var maskRe = this.createRegister();
+	var maskIm = this.createRegister();
+	var test = this.generate(expr.test);
+
+	this.instructions.push({ code: 'vpcmpeqd', ops: [ maskRe, test.re, zero ] });
+	this.instructions.push({ code: 'vpcmpeqd', ops: [ maskIm, test.im, zero ] });
+
+	var mask = this.createRegister();
+	this.instructions.push({ code: 'vandpd', ops: [ mask, maskRe, maskIm ] });
+
+	var ret = {
+		re: this.createRegister(),
+		im: this.createRegister()
+	};
+
+	var consequent = this.generateIfNotNumber(expr.consequent);
+	var alternate = this.generateIfNotNumber(expr.alternate);
+
+	this.instructions.push({ code: 'vblendvpd', ops: [ ret.re, alternate.re, consequent.re, mask ] });
+	this.instructions.push({ code: 'vblendvpd', ops: [ ret.im, alternate.im, consequent.im, mask ] });
+
+	return ret;
+};
+
 CodeGenerator.prototype.functionExpression = function(expr)
 {
 	var f = CodeGenerator.prototype[expr.name];
@@ -279,6 +308,29 @@ CodeGenerator.prototype.functionExpression = function(expr)
 		return f.call(this, this.generate(expr.arg));
 
 	throw new Error('Unsupported function ' + expr.name);
+};
+
+CodeGenerator.instructionToString = function(instruction)
+{
+	if (!instruction.code)
+		return null;
+
+	var ret = instruction.code + ' ';
+	var lenOps = instruction.ops.length;
+
+	for (var j = 0; j < lenOps; j++)
+	{
+		if (j > 0)
+			ret += ', ';
+
+		var op = instruction.ops[j];
+		if (typeof op === 'object')
+			ret += op.type + op.id;
+		else
+			ret += op;
+	}
+
+	return ret;
 };
 
 CodeGenerator.prototype.toString = function()
@@ -289,33 +341,15 @@ CodeGenerator.prototype.toString = function()
 	for (var i = 0; i < lenConstants; i++)
 	{
 		var v = this.constants[i].value || '(undefined)';
-		ret += 'constant' + i + ' := ' + v.toString() + '\n';
+		ret += 'constant' + i + ' := (' + (this.constants[i].type || 'double') + ') ' + v.toString() + '\n';
 	}
 
 	var lenInstructions = this.instructions.length;
 	for (var i = 0; i < lenInstructions; i++)
 	{
-		var instruction = this.instructions[i];
-
-		if (instruction.code)
-		{
-			ret += instruction.code + ' ';
-			var lenOps = instruction.ops.length;
-
-			for (var j = 0; j < lenOps; j++)
-			{
-				if (j > 0)
-					ret += ', ';
-
-				var op = instruction.ops[j];
-				if (typeof op === 'object')
-					ret += op.type + op.id;
-				else
-					ret += op;
-			}
-
-			ret += '\n';
-		}
+		var s = CodeGenerator.instructionToString(this.instructions[i]);
+		if (s)
+			ret += s + '\n';
 	}
 
 	return ret;

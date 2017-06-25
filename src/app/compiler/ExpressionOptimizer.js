@@ -22,6 +22,9 @@ ExpressionOptimizer.prototype.unaryExpression = function(expr)
 		}
 	}
 
+	if (expr.op === '+')
+		return expr.arg;
+
 	return expr;
 };
 
@@ -178,19 +181,30 @@ ExpressionOptimizer.prototype.binaryExpression = function(expr)
 			}
 		}
 
-		// generic case
+		// generic case: x^y = exp(ln(x) * y)
 		return {
-			type: 'functionExpression',
-			name: 'exp',
-			arg: {
-				type: 'binaryExpression',
-				op: '*',
-				left: {
-					type: 'functionExpression',
-					name: 'log',
-					arg: left
-				},
-				right: right
+			type: 'ifZeroExpression',
+			test: left,
+			consequent: {
+				// special case: x == 0 => x^y = 0
+				type: 'number',
+				re: 0,
+				im: 0
+			},
+			alternate: {
+				// generic case
+				type: 'functionExpression',
+				name: 'exp',
+				arg: {
+					type: 'binaryExpression',
+					op: '*',
+					left: {
+						type: 'functionExpression',
+						name: 'ln',
+						arg: left
+					},
+					right: right
+				}
 			}
 		};
 	}

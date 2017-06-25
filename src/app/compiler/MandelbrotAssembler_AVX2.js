@@ -1,3 +1,10 @@
+/**
+ * options: {
+ *     returnZn?: boolean;
+ *     returnDzn?: boolean;
+ *     computeHistogram?: boolean;
+ * }
+ */
 function MandelbrotAssembler(instructions, options)
 {
     this.options = options || {};
@@ -53,8 +60,8 @@ MandelbrotAssembler.prototype.run = function()
             0x48, 0x89, 0xd6,             // mov    rsi,rdx
             0x4c, 0x89, 0xc2,             // mov    rdx,r8
             0x4c, 0x89, 0xc9,             // mov    rcx,r9
-            0x4c, 0x8b, 0x44, 0x24, 0xe0, // mov    r8,QWORD PTR [rsp-0x20] ; maxIter
-            0x4c, 0x8b, 0x4c, 0x24, 0xd8  // mov    r9,QWORD PTR [rsp-0x28] ; histogram
+            0x4c, 0x8b, 0x44, 0x24, 0x18, // mov    r8,QWORD PTR [rsp+0x18] ; maxIter
+            0x4c, 0x8b, 0x4c, 0x24, 0x20  // mov    r9,QWORD PTR [rsp+0x20] ; histogram
         );
     }
 
@@ -67,12 +74,12 @@ MandelbrotAssembler.prototype.run = function()
         0x41, 0x57,                       // push   r15
 
         // pointer to z_n
-        0x4c, 0x8b, 0x64, 0x24,           // mov    r12,QWORD PTR [rsp-0x38]
-            isWindows ? 0xb8 : 0xc8,
+        0x4c, 0x8b, 0x64, 0x24,           // mov    r12,QWORD PTR [rsp+0x30]
+            isWindows ? 0x40 : 0x30,
 
         // pointer to dz_n
-        0x4c, 0x8b, 0x6c, 0x24,           // mov    r13,QWORD PTR [rsp-0x30]
-            isWindows ? 0xc0 : 0xd0,          
+        0x4c, 0x8b, 0x6c, 0x24,           // mov    r13,QWORD PTR [rsp+0x38]
+            isWindows ? 0x48 : 0x38,          
 
         // c <- (Re(c), Im(c0))
         0xc5, 0xfd, 0x28, 0x5f, 0x20      // vmovapd ymm3,YMMWORD PTR [rdi+0x20]

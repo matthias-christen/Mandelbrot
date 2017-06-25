@@ -83,14 +83,24 @@ CodeGenerator.prototype.exp = function(arg)
 	// exp(z) = exp(a + bi) = exp(a) * exp(bi) = exp(a) * (cos(b) + i*sin(b))
 
 	var result = {
-		re: this.createRegister(),
+		re: undefined,
 		im: this.createRegister()
 	};
 
 	var f = this._real_exp(arg.re);
-	var sincos = this._real_sincos(arg.im);
-	this.instructions.push({ code: 'vmulpd', ops: [ result.re, f, sincos.cos ] });
-	this.instructions.push({ code: 'vmulpd', ops: [ result.im, f, sincos.sin ] });
+	if (arg.type === 'number' && arg.im === 0)
+	{
+		result.re = f;
+		this.instructions.push({ code: 'vxorpd', ops: [ result.im, result.im, result.im ] });
+	}
+	else
+	{
+		result.re = this.createRegister();
+
+		var sincos = this._real_sincos(arg.im);
+		this.instructions.push({ code: 'vmulpd', ops: [ result.re, f, sincos.cos ] });
+		this.instructions.push({ code: 'vmulpd', ops: [ result.im, f, sincos.sin ] });
+	}
 
 	return result;
 };

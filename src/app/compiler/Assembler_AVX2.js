@@ -110,7 +110,25 @@ Assembler.prototype.run = function()
 	{
 		var f = this.mnemonics[instr.code];
 		if (f)
+		{
+			// check that only the last operand is a constant
+			var l = instr.ops.length - 1;
+			if (instr.code === 'vcmppd')
+				--l;
+			else if (instr.code === 'vblendvpd')
+			{
+				--l;
+				if (instr.ops[instr.ops.length - 1].type === 'constant')
+					throw new Error('Invalid constant at position ' + instr.ops.length + ': ' + CodeGenerator.instructionToString(instr));
+			}
+
+			for (var j = 0; j < l; j++)
+				if (instr.ops[j].type === 'constant')
+					throw new Error('Invalid constant at position ' + (j + 1) + ': ' + CodeGenerator.instructionToString(instr));
+
+			// assemble
 			f.apply(this, instr.ops);
+		}
 		else
 			throw new Error('Unknown mnemonic: ' + instr.code);
 	}

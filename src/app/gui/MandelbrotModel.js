@@ -3,6 +3,7 @@ MandelbrotModel = function()
 	this.formula = ko.observable('z^2+c');
 	this.radius = ko.observable(2);
 	this.maxIter = ko.observable(100);
+	this.colorFormula = ko.observable('n/maxIter');
 
 	this.colorMap = [
 		{ at: 0, r: 0x00, g: 0x00, b: 0x00 },

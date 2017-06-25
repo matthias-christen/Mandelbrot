@@ -14,6 +14,7 @@
 #endif
 
 #define PAGE_SIZE 4096
+#define USE_THREADS
 
 
 typedef void (*JIT_FUNC)(uint8_t*, uint8_t*, uint64_t, uint64_t, uint64_t, uint64_t*, double*, double*);
@@ -166,6 +167,28 @@ public:
             m_code[i] = (unsigned char) arrCode->GetInt(i);
         mprotect(m_code, m_codeSize, PROT_READ | PROT_EXEC);
     }
+    
+    void TestExecuteCode(double input[8], double output[8])
+    {
+        if (!m_code || !m_constants0)
+            return;
+        
+        asm("vmovupd (%0), %%ymm0\n"
+            "vmovupd (%1), %%ymm1\n"
+            :
+            : "r"(input), "r"(input + 4)
+            :
+        );
+        
+        (reinterpret_cast<void (*)(uint8_t*)>(m_code))(m_constants);
+        
+        asm("vmovupd %%ymm0, (%0)\n"
+            "vmovupd %%ymm1, (%1)\n"
+            :
+            : "r"(output), "r"(output + 4)
+            :
+        );
+    }
 
     void ExecuteCode(
         double xmin, double ymin, double xmax, double ymax,
@@ -252,6 +275,7 @@ JIT* g_jit = new JIT();
 typedef struct
 {
     CallbackId callback;
+    Zephyros::JavaScript::Array ret;
     double xmin;
     double ymin;
     double xmax;
@@ -289,7 +313,12 @@ void* ExecuteCode(void* args)
     );
     
     // prepare the return values
+#ifdef USE_THREADS
     Zephyros::JavaScript::Array ret = Zephyros::JavaScript::CreateArray();
+#else
+    Zephyros::JavaScript::Array ret = arguments->ret;
+#endif
+    
     ret->SetInt(0, width);
     ret->SetInt(1, height);
     
@@ -340,11 +369,17 @@ void* ExecuteCode(void* args)
     else
         ret->SetNull(5);
     
+#ifdef USE_THREADS
     // call the callback with the return values
     Zephyros::GetNativeExtensions()->GetClientExtensionHandler()->InvokeCallback(arguments->callback, ret);
+#endif
 
     delete arguments;
+    
+#ifdef USE_THREADS
     pthread_exit(NULL);
+#endif
+    
     return NULL;
 }
 
@@ -368,9 +403,15 @@ class MandelbrotNativeExtensions : public Zephyros::DefaultNativeExtensions
 	    extensionHandler->AddNativeJavaScriptFunction(
 	        TEXT("executeCode"),
 	        FUNC({
+#ifdef USE_THREADS
                 pthread_t thd;
+#endif
                 execute_code_t* arguments = new execute_code_t;
                 arguments->callback = callback;
+            
+#ifndef USE_THREADS
+                arguments->ret = ret;
+#endif
             
                 Zephyros::JavaScript::Object options = args->GetDictionary(0);
                 arguments->xmin = options->GetDouble(TEXT("xmin"));
@@ -385,12 +426,43 @@ class MandelbrotNativeExtensions : public Zephyros::DefaultNativeExtensions
                 arguments->computeDzn = options->HasKey(TEXT("computeDzn")) && options->GetBool(TEXT("computeDzn"));
                 arguments->computeHistogram = options->HasKey(TEXT("computeHistogram")) && options->GetBool(TEXT("computeHistogram"));
 
+#ifdef USE_THREADS
                 pthread_create(&thd, NULL, ExecuteCode, (void*) arguments);
-
-	            return RET_DELAYED_CALLBACK;
+                return RET_DELAYED_CALLBACK;
+#else
+                ExecuteCode((void*) arguments);
+                return NO_ERROR;
+#endif
 	        }
             ARG(VTYPE_DICTIONARY, "options")
 	    ));
+        
+        extensionHandler->AddNativeJavaScriptFunction(
+            TEXT("testCompileAndExecute"),
+            FUNC({
+                g_jit->CompileCode(args->GetList(0), args->GetList(1));
+
+                double input[8];
+                double output[8];
+
+                Zephyros::JavaScript::Array arrInput = args->GetList(2);
+                int lenInput = arrInput->GetSize();
+                for (int i = 0; i < 8; ++i)
+                    input[i] = i < lenInput ? arrInput->GetDouble(i) : 0;
+            
+                g_jit->TestExecuteCode(input, output);
+                
+                Zephyros::JavaScript::Array arrOutput = Zephyros::JavaScript::CreateArray();
+                for (int i = 0; i < 8; ++i)
+                    arrOutput->SetDouble(i, output[i]);
+                ret->SetList(0, arrOutput);
+
+                return NO_ERROR;
+            }
+            ARG(VTYPE_LIST, "code")
+            ARG(VTYPE_LIST, "constants")
+            ARG(VTYPE_LIST, "inputs")
+        ));
 	}
 };
 

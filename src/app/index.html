@@ -23,11 +23,106 @@
 
 		<script src="gui/smartresize.js"></script>
 		<script src="gui/splitter.js"></script>
+		<script src="gui/samples.js"></script>
 
 		<script src="gui/MandelbrotModel.js"></script>
 		<script src="gui/MandelbrotView.js"></script>
 
+		<meta charset="utf8">
+
 		<script>
+			// a^b = exp(log(a^b)) = exp(b*log(a))
+			function test()
+			{
+				/*
+				var ast = {
+					type: 'functionExpression',
+					name: 'exp',
+					arg: {
+						type: 'binaryExpression',
+						op: '*',
+						left: {
+							type: 'functionExpression',
+							name: 'ln',
+							arg: { type: 'variable', re: 'x', im: 'y' }
+						},
+						right: { type: 'number', re: 3, im: 0 }
+					}
+				};*/
+
+				/*
+				var ast = {
+					type: 'functionExpression',
+					name: 'ln',
+					arg: { type: 'variable', re: 'x', im: 'y' }
+				};*/
+
+				var ast = {
+					type: 'ifZeroExpression',
+					test: { type: 'variable', re: 'x', im: 'y' },
+					consequent: {
+						// special case: x == 0 => x^y = 0
+						type: 'number',
+						re: 0,
+						im: 0
+					},
+					alternate: {
+						// generic case
+						type: 'functionExpression',
+						name: 'exp',
+						arg: {
+							type: 'binaryExpression',
+							op: '*',
+							left: {
+								type: 'functionExpression',
+								name: 'ln',
+								arg: { type: 'variable', re: 'x', im: 'y' }
+							},
+							right: { type: 'number', re: 3, im: 0 }
+						}
+					}
+				};
+
+				var cg = new CodeGenerator(ast);
+				var ret = cg.generate();
+
+				// move the result to ymm0/ymm1
+				cg.instructions.push({ code: 'vmovapd', ops: [ cg.variables.x, ret.re ] });
+				cg.instructions.push({ code: 'vmovapd', ops: [ cg.variables.y, ret.im ] });
+
+				console.log(cg.toString());
+
+				var architecture = {
+     				registersCount: 16
+     			};
+
+				allocateRegisters(
+					cg.instructions,
+					architecture,
+					4 /* 4 registers for zRe, zIm, cRe, cIm */
+				);
+
+				var asm = new Assembler(cg.instructions);
+				asm.run();
+				asm.code.push(0xc3); // ret
+
+				console.log(asm.code.map(x => ('0' + x.toString(16)).substr(-2)).join(' '));
+
+				app.testCompileAndExecute(asm.code, cg.constants, [
+						// 1, i, 2, 2+2i
+						1, 0, 2, 2,
+						0, 1, 0, 2
+					], function(ret)
+				{
+					console.log('=== TEST ==>');
+					for (var i = 0; i < 4; i++)
+						console.log(ret[i] + '+' + ret[i + 4] + 'i');
+					console.log('<== TEST ===');
+				});
+			}
+
+			test();
+
 			// function test()
 			// {
 			// 	var cg = new CodeGenerator();
@@ -109,11 +204,17 @@
 		<div class="view">
 			<canvas id="canvas"></canvas>
 		</div>
-		<div class="splitter" data-bind="hsplitter"></div>
+		<div class="splitter" data-bind="hsplitter: controlBarWidth"></div>
 		<div class="control-bar">
-			<label>Formula</label>
+			<label>Mandelbrot Formula</label>
 			<div class="row">
-				<input type="text" class="input-formula" placeholder="Formula" data-bind="value: model.formula">
+				<div class="samples input-formula" data-bind="component: {
+					name: 'inputWithSamples',
+					params: {
+						input: model.formula,
+						samples: sampleMandelbrotFormulae
+					}
+				}"></div>
 				<button class="btn-compute" data-bind="click: compute">Compute</button>
 				<button class="btn-reset" data-bind="click: reset">Reset</button>
 			</div>
@@ -127,6 +228,21 @@
 			<div class="row">
 				<input type="number" class="input-maxiter" placeholder="Maximum Iterations" min="1" max="16384" data-bind="value: model.maxIter">
 			</div>
+
+			<label>Colors</label>
+			<div class="row">
+			</div>
+
+			<label>Color Formula</label>
+			<div class="row">
+				<div class="samples input-color-formula" data-bind="component: {
+					name: 'inputWithSamples',
+					params: {
+						input: model.colorFormula,
+						samples: sampleColorFormulae
+					}
+				}"></div>
+			</div>
 		</div>
 
 		<script>
@@ -139,15 +255,26 @@
 				view.recompute();
 			};
 
+			var recompute = function()
+			{
+				view.recompute();
+			};
+
 			ko.applyBindings({
 				controlBarWidth: ko.observable(300),
 				model: model,
-
-				compute: function()
-				{
-					view.recompute();
-				},
-
+				sampleMandelbrotFormulae: [
+					{ name: 'Standard Mandelbrot', formula: 'z^2+c' },
+					{ name: 'Cubic Mandelbrot', formula: 'z^3+c' },
+					{ name: 'Exponential Mandelbrot', formula: 'exp(z)+c' },
+					{ name: 'Sine Mandelbrot', formula: 'sin(z)+c' }
+				],
+				sampleColorFormulae: [
+					{ name: 'Simple Escape-Time', formula: 'n/maxIter' },
+					{ name: 'Escape-Time with Offset (for quadratic Mandelbrot)', formula: '(n-ln(ln(abs(z))/ln(2))/ln(2))/maxIter' },
+					{ name: 'Distance Estimation', formula: 'n/maxIter+abs(z)*ln(abs(z))/abs(dz)' }
+				],
+				compute: recompute,
 				reset: reset
 			});
 
