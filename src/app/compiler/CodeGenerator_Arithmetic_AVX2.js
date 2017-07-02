@@ -241,8 +241,12 @@ CodeGenerator.prototype.divide = function(left, right)
 
 	// denominator = right.re^2 + right.im^2
 	var denominator = this._real_cabs_square(right);
+
+	var one = this.createRegister();
+	this.instructions.push({ code: 'vmovapd', ops: [ one, this.getConstant(1) ] });
+
 	var invDenominator = this.createRegister();
-	this.instructions.push({ code: 'vdivpd', ops: [ invDenominator, this.getConstant(1), denominator ]});
+	this.instructions.push({ code: 'vdivpd', ops: [ invDenominator, one, denominator ]});
 
 	// multiply result.* with tmp
 	this.instructions.push({ code: 'vmulpd', ops: [ result.re, numerator.re, invDenominator ] });
